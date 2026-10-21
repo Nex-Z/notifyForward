@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 4dp 间距体系 -->
+    <dimen name="space_1">4dp</dimen>
+    <dimen name="space_2">8dp</dimen>
+    <dimen name="space_3">12dp</dimen>
+    <dimen name="space_4">16dp</dimen>
+    <dimen name="space_5">20dp</dimen>
+    <dimen name="space_6">24dp</dimen>
+
+    <dimen name="page_margin">20dp</dimen>
+    <dimen name="card_radius">14dp</dimen>
+    <dimen name="stat_radius">18dp</dimen>
+    <dimen name="search_height">44dp</dimen>
+    <dimen name="chip_height">32dp</dimen>
+    <dimen name="icon_tile">40dp</dimen>
+    <dimen name="settings_icon">29dp</dimen>
+    <dimen name="row_min_height">56dp</dimen>
+
+    <dimen name="text_screen_title">28sp</dimen>
+    <dimen name="text_row_title">16sp</dimen>
+    <dimen name="text_body">14sp</dimen>
+    <dimen name="text_caption">12sp</dimen>
+    <dimen name="text_section">13sp</dimen>
+</resources>

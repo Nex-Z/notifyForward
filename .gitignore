@@ -1,0 +1,28 @@
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build/
+/captures/
+.externalNativeBuild
+.cxx
+/build
+/app/build
+
+# 逆向分析临时产物
+/_apk_raw/
+/_jadx/
+/_tools/
+
+# Local tools, captures and generated packages
+.kotlin/
+.workbuddy/
+/_ui/
+/.impeccable/
+*.apk
+*.aab
+*.apks
+*.jks
+*.keystore
+

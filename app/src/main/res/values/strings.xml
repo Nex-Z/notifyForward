@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">通知哨兵</string>
+    <string name="app_subtitle">本地过滤 · 安静一点</string>
+
+    <string name="nav_history">通知</string>
+    <string name="nav_rules">规则</string>
+    <string name="nav_stats">统计</string>
+    <string name="nav_settings">设置</string>
+
+    <string name="title_history">通知历史</string>
+    <string name="title_rules">过滤规则</string>
+    <string name="title_stats">数据统计</string>
+    <string name="title_settings">设置</string>
+    <string name="title_rule_edit">编辑规则</string>
+    <string name="title_rule_new">新建规则</string>
+
+    <string name="banner_title">尚未开启通知使用权</string>
+    <string name="banner_desc">授权后才能读取状态栏通知并进行过滤，数据只保存在本机。</string>
+    <string name="banner_action">去授权</string>
+
+    <string name="search_hint">搜索通知、应用或内容</string>
+    <string name="search_rules_hint">搜索规则</string>
+    <string name="filter_all">全部</string>
+    <string name="filter_filtered">已过滤</string>
+    <string name="filter_normal">未过滤</string>
+    <string name="rule_enabled">启用中</string>
+    <string name="action_more">更多</string>
+    <string name="action_clear">清空</string>
+    <string name="action_clear_history">清空通知历史</string>
+
+    <string name="empty_history_title">还没有通知记录</string>
+    <string name="empty_history_desc">开启通知使用权后，收到的通知会显示在这里</string>
+    <string name="empty_rules_title">还没有过滤规则</string>
+    <string name="empty_rules_desc">创建规则，自动消除或静音骚扰通知</string>
+    <string name="empty_stats_title">暂无统计数据</string>
+    <string name="empty_stats_desc">收到通知后这里会展示过滤效果</string>
+    <string name="empty_search">没有找到匹配的通知</string>
+
+    <string name="add_rule">新建规则</string>
+    <string name="rule_hits">命中 %1$d 次</string>
+    <string name="rule_disabled">已停用</string>
+
+    <string name="badge_filtered">已拦截</string>
+    <string name="badge_muted">已静音</string>
+    <string name="badge_ai">AI</string>
+    <string name="badge_normal">正常</string>
+
+    <string name="stat_today_total">今日通知</string>
+    <string name="stat_today_filtered">今日拦截</string>
+    <string name="stat_rate">拦截率</string>
+    <string name="stat_week">近 7 天</string>
+    <string name="stat_by_app">按应用</string>
+    <string name="stat_by_rule">规则命中</string>
+    <string name="stat_total_filtered">累计拦截</string>
+
+    <string name="section_permission">权限与状态</string>
+    <string name="section_filter">过滤策略</string>
+    <string name="section_background">后台保护</string>
+    <string name="section_history">通知历史</string>
+    <string name="section_ai">本地 AI</string>
+    <string name="section_bark">Bark 推送</string>
+    <string name="section_advanced">高级</string>
+    <string name="section_about">关于</string>
+
+    <string name="set_listener">通知使用权</string>
+    <string name="set_listener_on">已开启</string>
+    <string name="set_listener_off">未开启，点击授权</string>
+    <string name="set_master">总开关</string>
+    <string name="set_master_desc">关闭后只记录通知，不做任何过滤</string>
+    <string name="set_excludes">排除的应用</string>
+    <string name="set_excludes_desc">这些应用的通知不会被过滤</string>
+    <string name="set_notice">过滤时提示</string>
+    <string name="set_notice_desc">拦截后在通知栏显示汇总提示</string>
+    <string name="set_smart_mute">智能静音</string>
+    <string name="set_smart_mute_desc">同一应用短时间内频繁推送时自动静音</string>
+    <string name="set_keep_alive">前台保活</string>
+    <string name="set_keep_alive_desc">以常驻通知的方式降低服务被系统回收的概率</string>
+    <string name="set_retention">历史保留</string>
+    <string name="set_retention_value">%1$d 天</string>
+    <string name="set_export_csv">导出历史 CSV</string>
+    <string name="set_export_rules">导入 / 导出规则</string>
+    <string name="set_clear_history">清空通知历史</string>
+    <string name="set_dnd">勿扰（静音）权限</string>
+    <string name="set_dnd_on">已授权</string>
+    <string name="set_dnd_off">未授权，静音效果将不可用</string>
+    <string name="set_version">版本 %1$s</string>
+    <string name="set_about_desc">离线运行 · 数据仅保存在本机</string>
+
+    <string name="ai_enabled">AI 智能过滤</string>
+    <string name="ai_enabled_desc">离线模型按骚扰概率自动拦截</string>
+    <string name="ai_threshold">拦截阈值</string>
+    <string name="ai_threshold_value">骚扰概率 ≥ %1$d%% 时拦截</string>
+    <string name="ai_threshold_value_short">%1$d%%</string>
+    <string name="ai_stats">已学习 %1$d 条反馈 · 词表 %2$d</string>
+    <string name="ai_reset">重置 AI 模型</string>
+
+    <string name="action_save">保存</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_delete">删除</string>
+    <string name="action_copy">复制</string>
+    <string name="action_close">关闭</string>
+    <string name="action_restore">重新显示</string>
+    <string name="action_open_app">打开应用</string>
+    <string name="action_mark_normal">标记为正常</string>
+    <string name="action_mark_spam">标记为骚扰</string>
+    <string name="action_test">测试命中</string>
+    <string name="action_duplicate">复制规则</string>
+    <string name="action_export">分享规则</string>
+
+    <string name="detail_title">通知详情</string>
+    <string name="toast_saved">已保存</string>
+    <string name="toast_deleted">已删除</string>
+    <string name="toast_copied">已复制到剪贴板</string>
+</resources>
