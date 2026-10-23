@@ -1,0 +1,24 @@
+{
+  "description": "Public real-message probe; de-identified reconstructed forwarding fields, not a labelled benchmark. label=0 means unlabelled, not an expected uncertain prediction.",
+  "support": [],
+  "tests": [
+    {
+      "id": "REAL-WX-GROUP-001",
+      "package": "com.tencent.mm",
+      "title": "[群名]",
+      "text": "[成员]: @[成员] 私发你？？",
+      "label": 0,
+      "scenario": "group",
+      "scenario_confidence": "inferred from mention and team title; not an Android conversation-type field",
+      "source": "https://github.com/pppscn/SmsForwarder/issues/612",
+      "source_kind": "public user-submitted forwarding failure log",
+      "event_date": "2025-05-21",
+      "transformations": [
+        "Sender, mention target and team title replaced with placeholders",
+        "Title reconstructed from forwarding simInfo; raw android.title unavailable"
+      ],
+      "reference_label": null,
+      "training_eligible": false
+    }
+  ]
+}

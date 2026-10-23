@@ -115,9 +115,10 @@ class StatsFragment : Fragment(), Refreshable {
         }
         views.forEachIndexed { i, tv ->
             val on = i == index
+            tv.isSelected = on
             tv.setBackgroundResource(if (on) R.drawable.bg_segment_selected else 0)
             tv.setTextColor(
-                ContextCompat.getColor(ctx, if (on) R.color.text_primary else R.color.text_secondary)
+                ContextCompat.getColor(ctx, if (on) R.color.white else R.color.text_primary)
             )
             tv.setTypeface(Typeface.DEFAULT, if (on) Typeface.BOLD else Typeface.NORMAL)
         }
@@ -149,7 +150,7 @@ class StatsFragment : Fragment(), Refreshable {
                 val previous = db.rangeStat(prevStart, start)
                 val chartDays = if (days == 1) 7 else days.coerceAtMost(30)
                 val chart = db.lastDays(chartDays)
-                val apps = db.appStats(chartDays, 6)
+                val apps = db.appStats(days, 6)
                 val rules = db.getAllRules().filter { it.hitCount > 0 }
                     .sortedByDescending { it.hitCount }.take(6)
                 StatsData(current, previous, chart, apps, rules)
@@ -177,6 +178,7 @@ class StatsFragment : Fragment(), Refreshable {
             val labels = chart.map {
                 SimpleDateFormat("M/d", Locale.getDefault()).format(Date(it.dayStart))
             }.toTypedArray()
+            binding.chartTitle.text = "通知趋势 · 近 ${chart.size} 天"
             binding.chart.setData(totals, filtered, labels)
             binding.miniChart.setData(
                 totals.takeLast(7).toIntArray(),

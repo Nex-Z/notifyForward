@@ -16,24 +16,24 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/page_margin"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="20dp"
             android:text="@string/title_stats"
             android:textAppearance="@style/TextAppearance.NotifyForward.ScreenTitle" />
 
         <!-- 时间范围 -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="36dp"
+            android:layout_height="40dp"
             android:layout_marginHorizontal="@dimen/page_margin"
             android:layout_marginTop="12dp"
             android:background="@drawable/bg_segment_container"
             android:orientation="horizontal"
-            android:padding="3dp">
+            android:padding="4dp">
 
             <TextView
                 android:id="@+id/segToday"
                 android:layout_width="0dp"
-                android:layout_height="30dp"
+                android:layout_height="32dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_segment_selected"
                 android:gravity="center"
@@ -45,7 +45,7 @@
             <TextView
                 android:id="@+id/seg7"
                 android:layout_width="0dp"
-                android:layout_height="30dp"
+                android:layout_height="32dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="近 7 天"
@@ -55,7 +55,7 @@
             <TextView
                 android:id="@+id/seg30"
                 android:layout_width="0dp"
-                android:layout_height="30dp"
+                android:layout_height="32dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="近 30 天"
@@ -65,7 +65,7 @@
             <TextView
                 android:id="@+id/segCustom"
                 android:layout_width="0dp"
-                android:layout_height="30dp"
+                android:layout_height="32dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="自定义"
@@ -105,7 +105,7 @@
                         android:id="@+id/tvTotal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="4dp"
                         android:text="0"
                         android:textColor="@color/text_primary"
                         android:textSize="36sp"
@@ -115,7 +115,7 @@
                         android:id="@+id/tvDelta"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="4dp"
                         android:text="—"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
@@ -177,20 +177,20 @@
                         android:id="@+id/tvUnfiltered"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="4dp"
                         android:text="0"
                         android:textColor="@color/text_primary"
-                        android:textSize="22sp"
+                        android:textSize="28sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvUnfilteredDelta"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="4dp"
                         android:text="—"
                         android:textColor="@color/text_secondary"
-                        android:textSize="11sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -234,20 +234,20 @@
                         android:id="@+id/tvFiltered"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="4dp"
                         android:text="0"
                         android:textColor="@color/text_primary"
-                        android:textSize="22sp"
+                        android:textSize="28sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvFilteredDelta"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="4dp"
                         android:text="—"
                         android:textColor="@color/text_secondary"
-                        android:textSize="11sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -290,20 +290,20 @@
                         android:id="@+id/tvRuleHits"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="4dp"
                         android:text="0"
                         android:textColor="@color/text_primary"
-                        android:textSize="22sp"
+                        android:textSize="28sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvRuleDelta"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="4dp"
                         android:text="—"
                         android:textColor="@color/text_secondary"
-                        android:textSize="11sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
@@ -332,6 +332,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:id="@+id/chartTitle"
                         android:text="通知趋势"
                         android:textColor="@color/text_primary"
                         android:textSize="15sp"
@@ -348,7 +349,7 @@
                         android:layout_marginStart="4dp"
                         android:text="全部"
                         android:textColor="@color/text_secondary"
-                        android:textSize="11sp" />
+                        android:textSize="12sp" />
 
                     <View
                         android:layout_width="7dp"
@@ -363,7 +364,7 @@
                         android:layout_marginStart="4dp"
                         android:text="已过滤"
                         android:textColor="@color/text_secondary"
-                        android:textSize="11sp" />
+                        android:textSize="12sp" />
                 </LinearLayout>
 
                 <com.notifyforward.app.ui.widget.WeekBarChart

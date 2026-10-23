@@ -17,7 +17,7 @@ class WeekBarChart @JvmOverloads constructor(
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = dp(10f)
+        textSize = 12f * resources.displayMetrics.scaledDensity
         textAlign = Paint.Align.CENTER
     }
     private val rect = RectF()
@@ -30,13 +30,14 @@ class WeekBarChart @JvmOverloads constructor(
     private val colorTotal = ContextCompat.getColor(context, R.color.brand_primary)
     private val colorFiltered = ContextCompat.getColor(context, R.color.accent)
     private val colorTrack = ContextCompat.getColor(context, R.color.chart_track)
-    private val colorText = ContextCompat.getColor(context, R.color.text_tertiary)
+    private val colorText = ContextCompat.getColor(context, R.color.text_secondary)
     private val colorValue = ContextCompat.getColor(context, R.color.text_secondary)
 
     fun setData(totals: IntArray, filtered: IntArray, labels: Array<String>) {
         this.totals = totals
-        this.filtered = filtered
+        this.filtered = IntArray(totals.size) { filtered.getOrElse(it) { 0 }.coerceIn(0, totals[it].coerceAtLeast(0)) }
         this.labels = labels
+        contentDescription = "通知趋势：" + totals.indices.joinToString("；") { "${labels.getOrElse(it) { (it + 1).toString() }}，全部 ${totals[it]}，已过滤 ${this.filtered[it]}" }
         invalidate()
     }
 
@@ -55,15 +56,23 @@ class WeekBarChart @JvmOverloads constructor(
         }
 
         val padBottom = dp(24f)
-        val padTop = dp(18f)
-        val chartH = height - padBottom - padTop
-        val slot = width.toFloat() / totals.size
+        val padTop = dp(24f)
+        val chartH = (height - padBottom - padTop).coerceAtLeast(0f)
+        val side = dp(12f)
+        val slot = (width - side * 2) / totals.size
         val barW = slot * 0.22f
         val gap = slot * 0.06f
         val radius = dp(4f)
         val maxValue = max(totals.maxOrNull() ?: 0, 1)
         val labelStep = kotlin.math.ceil(totals.size / 7f).toInt().coerceAtLeast(1)
 
+        // 轻量网格给柱高提供参照，密集时间段不叠加数字标签。
+        paint.color = colorTrack
+        paint.strokeWidth = dp(0.5f)
+        for (line in 0..3) {
+            val y = padTop + chartH * line / 4f
+            canvas.drawLine(0f, y, width.toFloat(), y, paint)
+        }
         // 基线
         paint.color = colorTrack
         canvas.drawRoundRect(
@@ -72,7 +81,7 @@ class WeekBarChart @JvmOverloads constructor(
         )
 
         for (i in totals.indices) {
-            val cx = slot * i + slot / 2f
+            val cx = side + slot * i + slot / 2f
             val total = totals[i]
             val filt = filtered[i]
 
@@ -88,7 +97,7 @@ class WeekBarChart @JvmOverloads constructor(
             paint.color = colorFiltered
             if (filtH > 0f) canvas.drawRoundRect(rect, radius, radius, paint)
 
-            if (total > 0) {
+            if (total > 0 && totals.size <= 7) {
                 textPaint.color = colorValue
                 canvas.drawText(
                     total.toString(),
@@ -99,7 +108,7 @@ class WeekBarChart @JvmOverloads constructor(
             }
 
             textPaint.color = colorText
-            if (i % labelStep == 0 || i == totals.size - 1) {
+            if (i % labelStep == 0) {
                 val label = labels.getOrElse(i) { "" }
                 canvas.drawText(label, cx, height - dp(8f), textPaint)
             }

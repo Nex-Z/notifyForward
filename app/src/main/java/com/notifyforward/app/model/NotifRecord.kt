@@ -30,7 +30,8 @@ data class NotifRecord(
     /** 命中来源，见 [Source] */
     val source: Int = Source.NONE,
     val feedback: Int = Feedback.NONE,
-    val hidden: Boolean = false
+    val hidden: Boolean = false,
+    val forwardError: String = ""
 ) {
     object Action {
         const val NONE = 0

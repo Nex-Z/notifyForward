@@ -11,8 +11,8 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="@dimen/page_margin"
-        android:paddingTop="8dp"
-        android:paddingBottom="10dp">
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp">
 
         <TextView
             android:layout_width="0dp"
@@ -23,8 +23,9 @@
 
         <ImageButton
             android:id="@+id/fab"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="12dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/add_rule"
             android:src="@drawable/ic_add"

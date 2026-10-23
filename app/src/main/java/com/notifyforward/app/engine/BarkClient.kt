@@ -67,11 +67,12 @@ object BarkClient {
             }
         }
 
-        val url = "$server/$deviceKey"
+        val url = "$server/${enc(deviceKey)}"
         var conn: HttpURLConnection? = null
         return try {
             conn = (URL(url).openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
+                instanceFollowRedirects = false
                 connectTimeout = 8000
                 readTimeout = 8000
                 doOutput = true
@@ -83,7 +84,7 @@ object BarkClient {
             val text = (if (httpCode in 200..299) conn.inputStream else conn.errorStream)
                 ?.bufferedReader()?.use(BufferedReader::readText).orEmpty()
             val apiCode = runCatching { JSONObject(text).optInt("code", -1) }.getOrDefault(-1)
-            val ok = httpCode in 200..299 && (apiCode == 200 || apiCode == -1)
+            val ok = httpCode in 200..299 && apiCode == 200
             Result(ok, httpCode, text.take(200).ifBlank { "HTTP $httpCode" })
         } catch (e: Exception) {
             Result(false, 0, e.message ?: "网络请求失败")

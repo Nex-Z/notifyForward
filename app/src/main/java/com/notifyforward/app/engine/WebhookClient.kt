@@ -34,6 +34,7 @@ object WebhookClient {
         return try {
             conn = (URL(fillUrl(url, r, rule)).openConnection() as HttpURLConnection).apply {
                 requestMethod = "POST"
+                instanceFollowRedirects = false
                 connectTimeout = 8000
                 readTimeout = 8000
                 doOutput = true
@@ -52,45 +53,29 @@ object WebhookClient {
         }
     }
 
-    fun fill(template: String, r: NotifRecord, rule: FilterRule): String {
-        val app = jsonEscape(r.displayAppName)
-        val pkg = jsonEscape(r.packageName)
-        val title = jsonEscape(r.title)
-        val message = jsonEscape(r.displayText)
-        val channel = jsonEscape(r.channelId)
-        return template
-            .replace("{app}", app)
-            .replace("{package}", pkg)
-            .replace("{title}", title)
-            .replace("{message}", message)
-            .replace("{channel}", channel)
-            .replace("{uid}", r.uid.toString())
-            .replace("{user}", r.userId.toString())
-            .replace("{clone}", if (r.clone) "true" else "false")
-            .replace("{when}", r.postTime.toString())
-            .replace("{rule}", jsonEscape(rule.name))
-            .replace("{filterbox.field.APP_NAME}", app)
-            .replace("{filterbox.field.PACKAGE_NAME}", pkg)
-            .replace("{filterbox.field.CHANNEL_ID}", channel)
-            .replace("{filterbox.field.WHEN}", r.postTime.toString())
-            .replace("{android.title}", title)
-            .replace("{android.text}", message)
-    }
+    private fun values(r: NotifRecord, rule: FilterRule): Map<String, String> = mapOf(
+        "app" to r.displayAppName, "package" to r.packageName,
+        "title" to r.title, "message" to r.displayText, "channel" to r.channelId,
+        "uid" to r.uid.toString(), "user" to r.userId.toString(),
+        "clone" to r.clone.toString(), "when" to r.postTime.toString(), "rule" to rule.name,
+        "filterbox.field.APP_NAME" to r.displayAppName,
+        "filterbox.field.PACKAGE_NAME" to r.packageName,
+        "filterbox.field.CHANNEL_ID" to r.channelId,
+        "filterbox.field.WHEN" to r.postTime.toString(),
+        "android.title" to r.title, "android.text" to r.displayText
+    )
 
-    fun fillUrl(template: String, r: NotifRecord, rule: FilterRule): String {
-        fun enc(s: String) = java.net.URLEncoder.encode(s, "UTF-8")
-        return template
-            .replace("{app}", enc(r.displayAppName))
-            .replace("{package}", enc(r.packageName))
-            .replace("{title}", enc(r.title))
-            .replace("{message}", enc(r.displayText))
-            .replace("{channel}", enc(r.channelId))
-            .replace("{uid}", r.uid.toString())
-            .replace("{user}", r.userId.toString())
-            .replace("{clone}", if (r.clone) "true" else "false")
-            .replace("{when}", r.postTime.toString())
-            .replace("{rule}", enc(rule.name))
-    }
+    // 只展开模板本身；通知正文中的 {message} 等文本必须原样保留。
+    private fun expand(template: String, values: Map<String, String>, escape: (String) -> String): String =
+        Regex("\\{([a-zA-Z_.]+)\\}").replace(template) { match ->
+            values[match.groupValues[1]]?.let(escape) ?: match.value
+        }
+
+    fun fill(template: String, r: NotifRecord, rule: FilterRule): String =
+        expand(template, values(r, rule), ::jsonEscape)
+
+    fun fillUrl(template: String, r: NotifRecord, rule: FilterRule): String =
+        expand(template, values(r, rule)) { java.net.URLEncoder.encode(it, "UTF-8") }
 
     private fun jsonEscape(s: String): String = JSONObject.quote(s).removeSurrounding("\"")
 }

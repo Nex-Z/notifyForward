@@ -1,0 +1,14 @@
+{
+  "unique_real_derived_messages": 1,
+  "unmodified_raw_android_notifications": 0,
+  "owner_labelled_messages": 0,
+  "precision": null,
+  "recall": null,
+  "f1": null,
+  "training_changed": false,
+  "probe_sha256": "9721f997da5750dbfc3ab7638fda7714bb2b08617a55b906020453116799eec2",
+  "encoder_sha256": "15b717c382bcb518ba457b93ea6850ede7f4f1cd8937454aa06972366cd19bcc",
+  "classifier_sha256": "3d571a5859807ec45d057009b94cf98e9539fabe15de2de74bc2397b737836af",
+  "environment": "Android emulator-5554, production SemanticEngine via instrumentation",
+  "warning": "The legacy personal16 mode name has zero reference samples in this probe; its duplicate result is not a second unique sample. expected=0 denotes unlabelled input here, not ground truth."
+}

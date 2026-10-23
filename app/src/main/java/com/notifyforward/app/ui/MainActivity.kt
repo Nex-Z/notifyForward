@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
             }
             true
         }
-        binding.bottomNav.selectedItemId = R.id.nav_history
+        binding.bottomNav.selectedItemId = savedInstanceState?.getInt("selected_tab", R.id.nav_history) ?: R.id.nav_history
         // iOS 风格：选中项只改变图标/文字颜色，不显示 M3 的胶囊指示块
         runCatching {
             binding.bottomNav.itemActiveIndicatorColor =
@@ -87,6 +87,11 @@ class MainActivity : AppCompatActivity() {
         ) {
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt("selected_tab", binding.bottomNav.selectedItemId)
+        super.onSaveInstanceState(outState)
     }
 
     private fun show(fragment: Fragment) {
@@ -121,6 +126,14 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updatePermissionCard()
+        if (isListenerEnabled()) {
+            // App 被系统停止后重新打开时，主动恢复已授权的通知监听。
+            runCatching {
+                android.service.notification.NotificationListenerService.requestRebind(
+                    android.content.ComponentName(this, com.notifyforward.app.service.NotifyListenerService::class.java)
+                )
+            }
+        }
         supportFragmentManager.fragments.firstOrNull { !it.isHidden }?.let {
             if (it is Refreshable) it.refresh()
         }

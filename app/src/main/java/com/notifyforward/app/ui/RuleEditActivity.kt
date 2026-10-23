@@ -62,6 +62,9 @@ class RuleEditActivity : AppCompatActivity() {
             binding.btnDelete.visibility = View.VISIBLE
         } else {
             binding.toolbar.title = getString(R.string.title_rule_new)
+            binding.radioOnly.isChecked = true
+            binding.switchDismiss.isChecked = false
+            updateScopeUi()
             binding.etWebhookBody.setText(WebhookClient.DEFAULT_BODY)
         }
 

@@ -87,13 +87,13 @@
     <string name="set_version">版本 %1$s</string>
     <string name="set_about_desc">离线运行 · 数据仅保存在本机</string>
 
-    <string name="ai_enabled">AI 智能过滤</string>
-    <string name="ai_enabled_desc">离线模型按骚扰概率自动拦截</string>
+    <string name="ai_enabled">AI 语义判断（观察模式）</string>
+    <string name="ai_enabled_desc">离线中文语义模型 + 个人标注；结果见通知详情，不自动拦截或静音</string>
     <string name="ai_threshold">拦截阈值</string>
     <string name="ai_threshold_value">骚扰概率 ≥ %1$d%% 时拦截</string>
     <string name="ai_threshold_value_short">%1$d%%</string>
     <string name="ai_stats">已学习 %1$d 条反馈 · 词表 %2$d</string>
-    <string name="ai_reset">重置 AI 模型</string>
+    <string name="ai_reset">清空个人学习数据</string>
 
     <string name="action_save">保存</string>
     <string name="action_cancel">取消</string>

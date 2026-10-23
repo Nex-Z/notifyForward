@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content" android:fillViewport="true">
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:paddingHorizontal="20dp"
-    android:paddingBottom="8dp">
+    android:paddingTop="20dp"
+    android:paddingBottom="24dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -73,7 +76,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:lineSpacingExtra="3dp"
-        android:textColor="@color/text_secondary"
+        android:textColor="@color/text_primary"
         android:textSize="15sp"
         android:textIsSelectable="true" />
 
@@ -84,6 +87,28 @@
         android:layout_marginTop="8dp"
         android:textColor="@color/text_secondary"
         android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/forwardingLog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:lineSpacingExtra="4dp"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textIsSelectable="true"
+        android:accessibilityLiveRegion="polite" />
+
+    <TextView
+        android:id="@+id/semanticJudgment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:lineSpacingExtra="3dp"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:accessibilityLiveRegion="polite"
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -158,17 +183,18 @@
             android:textSize="13sp"
             app:strokeColor="@color/danger" />
 
+    </LinearLayout>
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDelete"
             style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
-            android:layout_weight="1"
             android:minWidth="0dp"
             android:paddingHorizontal="4dp"
             android:text="@string/action_delete"
             android:textColor="@color/text_secondary"
             android:textSize="13sp" />
-    </LinearLayout>
 </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

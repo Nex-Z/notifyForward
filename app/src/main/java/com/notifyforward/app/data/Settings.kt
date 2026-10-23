@@ -48,7 +48,7 @@ class Settings private constructor(context: Context) {
         set(v) { kv.encode(KEY_NOTICE, v) }
 
     var smartMute: Boolean
-        get() = kv.decodeBool(KEY_SMART_MUTE, true)
+        get() = kv.decodeBool(KEY_SMART_MUTE, false)
         set(v) { kv.encode(KEY_SMART_MUTE, v) }
 
     var smartMuteBurst: Int

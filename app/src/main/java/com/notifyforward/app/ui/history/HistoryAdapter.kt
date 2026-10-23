@@ -81,10 +81,14 @@ class HistoryAdapter(
             )
             b.rowDivider.visibility = if (entry.last) View.GONE else View.VISIBLE
 
-            b.title.text = r.title.ifBlank { r.displayAppName }
-            b.text.text = r.displayText.ifBlank { "（无正文）" }
+            b.title.text = r.displayAppName
+            b.text.text = when {
+                r.displayText.isBlank() -> r.title.ifBlank { "（无正文）" }
+                r.title.isBlank() || r.displayText.startsWith(r.title) -> r.displayText
+                else -> "${r.title}：${r.displayText}"
+            }
             b.time.text = formatTime(r.postTime)
-            b.appName.text = r.displayAppName
+            b.appName.visibility = View.GONE
 
             val icon = AppInfo.icon(ctx, r.packageName)
             if (icon != null) {
@@ -104,6 +108,8 @@ class HistoryAdapter(
             }
 
             when {
+                r.forwardError.isNotBlank() ->
+                    badge(ctx, "转发失败", R.color.danger, R.color.danger_container)
                 r.action and NotifRecord.Action.DISMISS != 0 ->
                     badge(ctx, "已拦截", R.color.danger, R.color.danger_container)
                 r.action and NotifRecord.Action.MUTE != 0 ->
@@ -136,6 +142,9 @@ class HistoryAdapter(
             } else {
                 b.score.visibility = View.GONE
             }
+
+            b.badgeRow.visibility = if (b.statusBadge.visibility == View.VISIBLE ||
+                b.ruleName.visibility == View.VISIBLE || b.score.visibility == View.VISIBLE) View.VISIBLE else View.GONE
 
             val fresh = r.action == NotifRecord.Action.NONE &&
                 System.currentTimeMillis() - r.postTime < 30 * 60 * 1000L

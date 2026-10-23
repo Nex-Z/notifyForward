@@ -73,7 +73,8 @@
                             android:textColor="@color/text_primary"
                             android:textSize="14sp" />
 
-                        <com.google.android.material.materialswitch.MaterialSwitch
+                        <androidx.appcompat.widget.SwitchCompat
+            style="@style/Widget.NotifyForward.Switch"
                             android:id="@+id/switchEnabled"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -89,7 +90,7 @@
                 android:layout_marginStart="12dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="6dp"
-                android:text="过滤范围" />
+                android:text="应用范围" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -126,7 +127,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:paddingVertical="6dp"
-                            android:text="仅过滤选中的应用"
+                            android:text="仅对选中的应用生效"
                             android:textColor="@color/text_primary"
                             android:textSize="14sp" />
 
@@ -135,7 +136,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:paddingVertical="6dp"
-                            android:text="选中的应用不过滤"
+                            android:text="排除选中的应用"
                             android:textColor="@color/text_primary"
                             android:textSize="14sp" />
                     </RadioGroup>
@@ -202,7 +203,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
                         android:hint="关键词（每行一个）"
-                        app:helperText="留空时，仅对「仅过滤选中的应用」生效：拦截该应用的全部通知">
+                        app:helperText="留空时，仅对「仅对选中的应用生效」生效：匹配这些应用的全部通知，执行下方所选操作">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etKeywords"
@@ -335,7 +336,8 @@
                                 android:textSize="11sp" />
                         </LinearLayout>
 
-                        <com.google.android.material.materialswitch.MaterialSwitch
+                        <androidx.appcompat.widget.SwitchCompat
+            style="@style/Widget.NotifyForward.Switch"
                             android:id="@+id/switchDismiss"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -363,7 +365,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="静音（勿扰）"
+                                android:text="全局勿扰"
                                 android:textColor="@color/text_primary"
                                 android:textSize="14sp" />
 
@@ -371,12 +373,13 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:text="在设定时长内压制铃声与振动，需要勿扰权限"
+                                android:text="影响整台手机，包括其他应用来电；需要勿扰权限"
                                 android:textColor="@color/text_secondary"
                                 android:textSize="11sp" />
                         </LinearLayout>
 
-                        <com.google.android.material.materialswitch.MaterialSwitch
+                        <androidx.appcompat.widget.SwitchCompat
+            style="@style/Widget.NotifyForward.Switch"
                             android:id="@+id/switchMute"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
@@ -433,7 +436,8 @@
                                 android:textSize="11sp" />
                         </LinearLayout>
 
-                        <com.google.android.material.materialswitch.MaterialSwitch
+                        <androidx.appcompat.widget.SwitchCompat
+            style="@style/Widget.NotifyForward.Switch"
                             android:id="@+id/switchWebhook"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
@@ -522,7 +526,8 @@
                                 android:textSize="11sp" />
                         </LinearLayout>
 
-                        <com.google.android.material.materialswitch.MaterialSwitch
+                        <androidx.appcompat.widget.SwitchCompat
+            style="@style/Widget.NotifyForward.Switch"
                             android:id="@+id/switchBark"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
@@ -564,7 +569,8 @@
                             android:textColor="@color/text_primary"
                             android:textSize="14sp" />
 
-                        <com.google.android.material.materialswitch.MaterialSwitch
+                        <androidx.appcompat.widget.SwitchCompat
+            style="@style/Widget.NotifyForward.Switch"
                             android:id="@+id/switchTts"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />

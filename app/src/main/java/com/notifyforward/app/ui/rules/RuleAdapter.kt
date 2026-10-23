@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.notifyforward.app.R
 import com.notifyforward.app.databinding.ItemRuleBinding
 import com.notifyforward.app.model.FilterRule
-import kotlin.math.abs
 
 class RuleAdapter(
     private val onToggle: (FilterRule, Boolean) -> Unit,
@@ -42,26 +41,19 @@ class RuleAdapter(
             )
             b.rowDivider.visibility = if (position == total - 1) View.GONE else View.VISIBLE
 
-            // 按规则 id 轮转强调色，相邻规则不撞色
-            val palette = intArrayOf(
-                R.color.danger,
-                R.color.accent,
-                R.color.warning,
-                R.color.purple,
-                R.color.brand_primary,
-                R.color.teal
-            )
-            val index = if (rule.id > 0) {
-                (rule.id % palette.size).toInt()
-            } else {
-                abs(rule.name.hashCode()) % palette.size
+            // 图标表达规则效果，颜色保持稳定，不按 id 随机轮换。
+            val (icon, color) = when {
+                rule.bark || rule.webhookUrl.isNotBlank() -> R.drawable.ic_send to R.color.brand_primary
+                rule.muteSeconds > 0 -> R.drawable.ic_moon to R.color.purple
+                rule.tts -> R.drawable.ic_bell to R.color.warning
+                rule.effectDismiss -> R.drawable.ic_filter to R.color.brand_primary
+                else -> R.drawable.ic_layers to R.color.text_secondary
             }
-            b.iconTile.backgroundTintList =
-                ContextCompat.getColorStateList(ctx, palette[index])
-
-            b.name.alpha = if (rule.enabled) 1f else 0.45f
-            b.summary.alpha = if (rule.enabled) 1f else 0.5f
-
+            b.icon.setImageResource(icon)
+            b.iconTile.backgroundTintList = ContextCompat.getColorStateList(ctx, color)
+            b.name.alpha = 1f
+            b.summary.alpha = 1f
+            b.switchRule.contentDescription = "启用规则：${b.name.text}"
             b.switchRule.setOnCheckedChangeListener(null)
             b.switchRule.isChecked = rule.enabled
             b.switchRule.setOnCheckedChangeListener { _, checked -> onToggle(rule, checked) }

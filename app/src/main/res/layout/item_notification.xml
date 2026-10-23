@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:gravity="top"
         android:orientation="horizontal"
-        android:paddingHorizontal="14dp"
+        android:paddingHorizontal="16dp"
         android:paddingVertical="12dp">
 
         <FrameLayout
@@ -83,7 +83,7 @@
                 android:id="@+id/text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
+                android:layout_marginTop="4dp"
                 android:ellipsize="end"
                 android:lineSpacingExtra="2dp"
                 android:maxLines="2"
@@ -94,7 +94,7 @@
                 android:id="@+id/badgeRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="8dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -105,7 +105,7 @@
                     android:background="@drawable/bg_badge"
                     android:paddingHorizontal="6dp"
                     android:paddingVertical="1dp"
-                    android:textSize="10sp"
+                    android:textSize="12sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
 
@@ -117,7 +117,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:textColor="@color/text_secondary"
-                    android:textSize="11sp" />
+                    android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/ruleName"
@@ -128,7 +128,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:textColor="@color/text_secondary"
-                    android:textSize="11sp" />
+                    android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/score"
@@ -136,7 +136,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="6dp"
                     android:textColor="@color/text_secondary"
-                    android:textSize="11sp" />
+                    android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
@@ -145,6 +145,6 @@
         android:id="@+id/rowDivider"
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
-        android:layout_marginStart="66dp"
+        android:layout_marginStart="68dp"
         android:background="@color/divider" />
 </LinearLayout>

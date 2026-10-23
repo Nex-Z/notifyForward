@@ -11,8 +11,8 @@
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="@dimen/page_margin"
-        android:paddingTop="8dp"
-        android:paddingBottom="10dp">
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp">
 
         <TextView
             android:layout_width="0dp"
@@ -23,8 +23,9 @@
 
         <ImageButton
             android:id="@+id/btnMore"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="12dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/action_more"
             android:src="@drawable/ic_more"
@@ -108,6 +109,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/chip_height"
                 android:text="@string/filter_normal" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipForwarded"
+                style="@style/Widget.NotifyForward.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/chip_height"
+                android:text="转发记录" />
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
 

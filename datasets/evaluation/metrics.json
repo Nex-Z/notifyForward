@@ -1,0 +1,54 @@
+{
+  "cold": {
+    "n": 48,
+    "tp": 5,
+    "fp": 0,
+    "fn": 19,
+    "spam_precision": 1.0,
+    "spam_recall": 0.20833333333333334,
+    "spam_f1": 0.3448275862068966,
+    "normal_false_positive_rate": 0.0,
+    "coverage": 0.10416666666666667,
+    "abstentions": 43,
+    "decided_accuracy": 1.0,
+    "all_correct_rate": 0.10416666666666667,
+    "matrix": [
+      [
+        0,
+        0,
+        24
+      ],
+      [
+        0,
+        5,
+        19
+      ]
+    ]
+  },
+  "personal16": {
+    "n": 48,
+    "tp": 11,
+    "fp": 0,
+    "fn": 13,
+    "spam_precision": 1.0,
+    "spam_recall": 0.4583333333333333,
+    "spam_f1": 0.6285714285714286,
+    "normal_false_positive_rate": 0.0,
+    "coverage": 0.22916666666666666,
+    "abstentions": 37,
+    "decided_accuracy": 1.0,
+    "all_correct_rate": 0.22916666666666666,
+    "matrix": [
+      [
+        0,
+        0,
+        24
+      ],
+      [
+        0,
+        11,
+        13
+      ]
+    ]
+  }
+}

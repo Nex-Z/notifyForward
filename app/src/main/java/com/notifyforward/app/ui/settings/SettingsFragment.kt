@@ -25,6 +25,7 @@ import com.notifyforward.app.data.Settings
 import com.notifyforward.app.databinding.DialogInputBinding
 import com.notifyforward.app.databinding.FragmentSettingsBinding
 import com.notifyforward.app.engine.AiEngine
+import com.notifyforward.app.engine.LearningStore
 import com.notifyforward.app.engine.BarkClient
 import com.notifyforward.app.engine.DndController
 import com.notifyforward.app.service.KeepAliveService
@@ -44,6 +45,43 @@ class SettingsFragment : Fragment(), Refreshable {
 
     private lateinit var settings: Settings
     private var pendingExportJson: String = ""
+
+    private val createLearningDoc = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) {
+            val ctx = requireContext().applicationContext
+            lifecycleScope.launch {
+                val ok = withContext(Dispatchers.IO) { runCatching {
+                    val raw = LearningStore(ctx).exportJson()
+                    check(raw.toByteArray(Charsets.UTF_8).size <= LearningStore.MAX_BACKUP_BYTES)
+                    check(RuleIO.writeToUri(ctx, uri, raw))
+                }.isSuccess }
+                if (isAdded) toast(if (ok) "学习数据已备份" else "备份失败，请检查存储空间后重试")
+            }
+        }
+    }
+    private val openLearningDoc = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            val ctx = requireContext().applicationContext
+            lifecycleScope.launch {
+                val result = withContext(Dispatchers.IO) { runCatching {
+                    ctx.contentResolver.openInputStream(uri)!!.use { input ->
+                        val out = java.io.ByteArrayOutputStream()
+                        val buffer = ByteArray(8192)
+                        var n = input.read(buffer)
+                        while (n >= 0) {
+                            require(out.size() + n <= LearningStore.MAX_BACKUP_BYTES)
+                            out.write(buffer, 0, n); n = input.read(buffer)
+                        }
+                        LearningStore(ctx).importJson(out.toString("UTF-8"))
+                    }
+                } }
+                if (isAdded) {
+                    result.onSuccess { toast("已恢复 $it 条新样本，已有标注保持不变"); refresh() }
+                        .onFailure { toast("恢复失败：请选择有效的学习备份（不超过 16 MB）") }
+                }
+            }
+        }
+    }
 
     private val createDoc =
         registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
@@ -70,6 +108,56 @@ class SettingsFragment : Fragment(), Refreshable {
         settings = Settings.get(requireContext())
         bindValues()
         bindListeners()
+        setupSections()
+    }
+
+    private fun setupSections() {
+        val section = arguments?.getInt("section", -1) ?: -1
+        val headers = listOf(binding.headerPermission, binding.headerFilter, binding.headerBackground,
+            binding.headerHistory, binding.headerBark, binding.headerAi, binding.headerAbout)
+        val groups = listOf(binding.groupPermission, binding.groupFilter, binding.groupBackground,
+            binding.groupHistory, binding.groupBark, binding.groupAi, binding.groupAbout)
+        listOf(binding.rowLearningBackup, binding.rowLearningRestore, binding.btnResetAi, binding.rowRulesExport, binding.rowRulesImport).forEach { row ->
+            val content = row.text.toString()
+            val split = content.indexOf('\n')
+            if (split >= 0) row.text = android.text.SpannableString(content).apply {
+                setSpan(android.text.style.RelativeSizeSpan(0.82f), split + 1, length, 0)
+                setSpan(android.text.style.ForegroundColorSpan(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.settings_secondary)), split + 1, length, 0)
+            }
+            if (row != binding.btnResetAi) row.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, R.drawable.ic_chevron, 0)
+        }
+        binding.settingsTitle.visibility = if (section < 0) View.VISIBLE else View.GONE
+        binding.settingsFooter.visibility = if (section < 0) View.VISIBLE else View.GONE
+        val icons = listOf(R.drawable.ic_shield, R.drawable.ic_tune, R.drawable.ic_battery, R.drawable.ic_history, R.drawable.ic_send, R.drawable.ic_robot, R.drawable.ic_info)
+        headers.forEachIndexed { index, header ->
+            val icon = androidx.core.content.ContextCompat.getDrawable(requireContext(), icons[index])?.mutate()
+            icon?.setTint(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.brand_primary))
+            val size = (22 * resources.displayMetrics.density).toInt()
+            icon?.setBounds(0, 0, size, size)
+            val arrow = androidx.core.content.ContextCompat.getDrawable(requireContext(), R.drawable.ic_chevron)?.mutate()
+            arrow?.setTint(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.settings_secondary))
+            arrow?.setBounds(0, 0, size, size)
+            header.setCompoundDrawablesRelative(icon, null, arrow, null)
+            header.visibility = if (section < 0) View.VISIBLE else View.GONE
+            groups[index].visibility = if (section == index) View.VISIBLE else View.GONE
+            header.setOnClickListener { SettingsDetailActivity.open(requireContext(), index) }
+        }
+        if (section >= 0) groups[section].layoutParams = (groups[section].layoutParams as android.view.ViewGroup.MarginLayoutParams).apply {
+            topMargin = (16 * resources.displayMetrics.density).toInt()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refresh()
+    }
+
+    private fun sectionSummary(view: android.widget.TextView, title: String, summary: String) {
+        view.text = android.text.SpannableString("$title\n$summary").apply {
+            setSpan(android.text.style.ForegroundColorSpan(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.text_primary)), 0, title.length, 0)
+            setSpan(android.text.style.RelativeSizeSpan(0.78f), title.length + 1, length, 0)
+            setSpan(android.text.style.ForegroundColorSpan(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.settings_secondary)), title.length + 1, length, 0)
+        }
     }
 
     override fun refresh() {
@@ -87,15 +175,14 @@ class SettingsFragment : Fragment(), Refreshable {
 
         binding.switchMaster.isChecked = settings.masterEnabled
         binding.switchAi.isChecked = settings.aiEnabled
-        binding.sliderThreshold.value = (settings.aiThreshold * 100).coerceIn(50f, 99f)
-        binding.tvThreshold.text = getString(R.string.ai_threshold_value_short, (settings.aiThreshold * 100).toInt())
         binding.tvExcludeValue.text = if (settings.excludeApps.isEmpty()) {
             getString(R.string.set_excludes_desc)
         } else {
             "已排除 ${settings.excludeApps.size} 个应用"
         }
         binding.switchNotice.isChecked = settings.showFilterNotice
-        binding.switchSmartMute.isChecked = settings.smartMute
+        (binding.switchSmartMute.parent as android.view.View).visibility = android.view.View.GONE
+        settings.smartMute = false
         binding.switchKeepAlive.isChecked = settings.keepAlive
 
         val pm = ctx.getSystemService(PowerManager::class.java)
@@ -104,8 +191,13 @@ class SettingsFragment : Fragment(), Refreshable {
             if (ignoring) "已忽略电池优化" else "未忽略，系统可能限制后台运行"
         binding.tvRetention.text = getString(R.string.set_retention_value, settings.retentionDays)
 
-        val stats = AiEngine.stats(ctx)
-        binding.tvAiStats.text = getString(R.string.ai_stats, stats.feedback, stats.vocabulary)
+        val (normal, spam) = LearningStore(ctx).counts()
+        binding.tvAiStats.text = android.text.SpannableString("已标注 ${normal + spam} 条\n正常 $normal · 骚扰 $spam").apply {
+            val start = indexOf('\n') + 1
+            setSpan(android.text.style.RelativeSizeSpan(0.65f), start, length, 0)
+            setSpan(android.text.style.StyleSpan(android.graphics.Typeface.NORMAL), start, length, 0)
+            setSpan(android.text.style.ForegroundColorSpan(androidx.core.content.ContextCompat.getColor(ctx, R.color.settings_secondary)), start, length, 0)
+        }
 
         // Bark
         binding.tvBarkServer.text = settings.barkServer
@@ -128,6 +220,13 @@ class SettingsFragment : Fragment(), Refreshable {
             ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName
         }.getOrNull() ?: "1.0.0"
         binding.tvVersion.text = getString(R.string.set_version, version)
+        sectionSummary(binding.headerPermission, "权限与连接", if (listenerOn) "通知读取已授权" else "需要开启通知读取权限")
+        sectionSummary(binding.headerFilter, "功能与应用范围", "处理${if (settings.masterEnabled) "已开启" else "已关闭"} · AI${if (settings.aiEnabled) "仅观察" else "已关闭"}")
+        sectionSummary(binding.headerBackground, "后台运行", "保活${if (settings.keepAlive) "已开启" else "未开启"} · 电池${if (ignoring) "无限制" else "可能受限"}")
+        sectionSummary(binding.headerHistory, "历史与规则备份", "保留 ${settings.retentionDays} 天 · 导出、恢复与清理")
+        sectionSummary(binding.headerBark, "Bark 转发", if (settings.barkKey.isBlank()) "尚未配置接收设备" else "已配置 · ${if (settings.barkEncrypt) "加密开启" else "加密关闭"}")
+        sectionSummary(binding.headerAi, "个人学习数据", "${normal + spam} 条标注 · 正常 $normal · 骚扰 $spam")
+        sectionSummary(binding.headerAbout, "关于", "版本 $version")
     }
 
     private fun bindListeners() {
@@ -137,12 +236,9 @@ class SettingsFragment : Fragment(), Refreshable {
         binding.rowDnd.setOnClickListener {
             runCatching { startActivity(Intent(AndroidSettings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) }
         }
-        binding.switchMaster.setOnCheckedChangeListener { _, checked -> settings.masterEnabled = checked }
-        binding.switchAi.setOnCheckedChangeListener { _, checked -> settings.aiEnabled = checked }
-        binding.sliderThreshold.addOnChangeListener { _, value, _ ->
-            settings.aiThreshold = value / 100f
-            binding.tvThreshold.text = getString(R.string.ai_threshold_value_short, value.toInt())
-        }
+        binding.switchMaster.setOnCheckedChangeListener { _, checked -> settings.masterEnabled = checked; refresh() }
+        binding.switchAi.setOnCheckedChangeListener { _, checked -> settings.aiEnabled = checked; refresh() }
+
         binding.rowExcludes.setOnClickListener {
             AppPickerDialog.show(requireContext(), settings.excludeApps.toList()) { list ->
                 settings.excludeApps = list.toSet()
@@ -150,7 +246,7 @@ class SettingsFragment : Fragment(), Refreshable {
             }
         }
         binding.switchNotice.setOnCheckedChangeListener { _, checked -> settings.showFilterNotice = checked }
-        binding.switchSmartMute.setOnCheckedChangeListener { _, checked -> settings.smartMute = checked }
+
         binding.switchKeepAlive.setOnCheckedChangeListener { _, checked ->
             settings.keepAlive = checked
             if (checked) {
@@ -160,6 +256,7 @@ class SettingsFragment : Fragment(), Refreshable {
                 KeepAliveService.stop(requireContext())
                 WatchdogService.cancel(requireContext())
             }
+            refresh()
         }
         binding.rowRetention.setOnClickListener { pickRetention() }
         binding.rowBattery.setOnClickListener { requestIgnoreBattery() }
@@ -167,8 +264,25 @@ class SettingsFragment : Fragment(), Refreshable {
         binding.rowKeepAliveGuide.setOnClickListener { showKeepAliveGuide() }
         binding.rowExportCsv.setOnClickListener { exportCsv() }
         binding.rowClearHistory.setOnClickListener { confirmClearHistory() }
-        binding.rowRulesIo.setOnClickListener { showRulesIo() }
+        binding.rowRulesIo.visibility = View.GONE
         binding.btnResetAi.setOnClickListener { confirmResetAi() }
+        binding.rowLearningBackup.setOnClickListener { createLearningDoc.launch("notifyforward-learning-${System.currentTimeMillis()}.json") }
+        binding.rowLearningRestore.setOnClickListener { openLearningDoc.launch(arrayOf("application/json", "text/plain")) }
+        binding.rowRulesExport.setOnClickListener {
+            pendingExportJson = RuleIO.exportJson(requireContext())
+            createDoc.launch("notifyforward-rules.json")
+        }
+        binding.rowRulesCopy.setOnClickListener {
+            val cm = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            cm.setPrimaryClip(ClipData.newPlainText("通知规则", RuleIO.exportJson(requireContext())))
+            toast("规则已复制到剪贴板")
+        }
+        binding.rowRulesPaste.setOnClickListener {
+            val cm = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val raw = cm.primaryClip?.getItemAt(0)?.coerceToText(requireContext())?.toString()
+            if (raw.isNullOrBlank()) toast("剪贴板为空") else importText(raw)
+        }
+        binding.rowRulesImport.setOnClickListener { openDoc.launch(arrayOf("application/json", "text/plain")) }
 
         binding.rowBarkServer.setOnClickListener {
             inputDialog("Bark 服务器", settings.barkServer, "https://api.day.app") { v ->
@@ -221,14 +335,10 @@ class SettingsFragment : Fragment(), Refreshable {
         val values = arrayOf("active", "timeSensitive", "passive", "critical")
         val labels = arrayOf("活跃（立即提醒）", "时效性（可穿透专注模式）", "静默（不响铃）", "紧急（需 Bark 授权）")
         val index = values.indexOf(settings.barkLevel).coerceAtLeast(0)
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("通知级别")
-            .setSingleChoiceItems(labels, index) { dialog, which ->
-                settings.barkLevel = values[which]
-                dialog.dismiss()
-                refresh()
-            }
-            .show()
+        com.notifyforward.app.ui.ChoiceSheet.show(requireContext(), "通知级别", labels.toList(), index) { which ->
+            settings.barkLevel = values[which]
+            refresh()
+        }
     }
 
     private fun inputDialog(
@@ -380,18 +490,12 @@ class SettingsFragment : Fragment(), Refreshable {
         val options = intArrayOf(7, 30, 90)
         val labels = arrayOf("7 天", "30 天", "90 天")
         val index = options.indexOf(settings.retentionDays).coerceAtLeast(0)
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.set_retention)
-            .setSingleChoiceItems(labels, index) { dialog, which ->
-                settings.retentionDays = options[which]
-                val ctx = requireContext()
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    DbHelper.get(ctx).deleteOlderThan(options[which])
-                }
-                dialog.dismiss()
-                refresh()
-            }
-            .show()
+        com.notifyforward.app.ui.ChoiceSheet.show(requireContext(), "历史保留时间", labels.toList(), index) { which ->
+            settings.retentionDays = options[which]
+            val ctx = requireContext()
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) { DbHelper.get(ctx).deleteOlderThan(options[which]) }
+            refresh()
+        }
     }
 
     private fun exportCsv() {
@@ -428,37 +532,6 @@ class SettingsFragment : Fragment(), Refreshable {
             .show()
     }
 
-    private fun showRulesIo() {
-        val items = arrayOf("导出到剪贴板", "导出到文件", "从剪贴板导入", "从文件导入")
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.set_export_rules)
-            .setItems(items) { _, which ->
-                when (which) {
-                    0 -> {
-                        val json = RuleIO.exportJson(requireContext())
-                        val cm = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        cm.setPrimaryClip(ClipData.newPlainText("filterbox rules", json))
-                        toast("规则已复制到剪贴板")
-                    }
-                    1 -> {
-                        pendingExportJson = RuleIO.exportJson(requireContext())
-                        createDoc.launch("notifyforward-rules.json")
-                    }
-                    2 -> {
-                        val cm = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        val text = cm.primaryClip?.getItemAt(0)?.coerceToText(requireContext())?.toString()
-                        if (text.isNullOrBlank()) {
-                            toast("剪贴板为空")
-                        } else {
-                            importText(text)
-                        }
-                    }
-                    3 -> openDoc.launch(arrayOf("application/json", "text/plain", "*/*"))
-                }
-            }
-            .show()
-    }
-
     private fun importFrom(uri: Uri) {
         val text = RuleIO.readFromUri(requireContext(), uri)
         if (text.isNullOrBlank()) {
@@ -479,12 +552,13 @@ class SettingsFragment : Fragment(), Refreshable {
     private fun confirmResetAi() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.ai_reset)
-            .setMessage("将清除你此前的全部反馈学习数据，恢复为内置模型。")
+            .setMessage("清空全部个人标注，恢复为内置分类器。语义模型仍只判断，不自动拦截。建议先备份。")
             .setNegativeButton(R.string.action_cancel, null)
             .setPositiveButton("重置") { _, _ ->
+                LearningStore(requireContext()).reset()
                 AiEngine.reset(requireContext())
                 refresh()
-                toast("AI 模型已重置")
+                toast("个人标注已清空")
             }
             .show()
     }

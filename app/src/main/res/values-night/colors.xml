@@ -28,4 +28,6 @@
 
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+    <color name="switch_off">#39393D</color>
+    <color name="settings_secondary">#B4B4BC</color>
 </resources>

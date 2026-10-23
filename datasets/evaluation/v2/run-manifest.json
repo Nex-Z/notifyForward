@@ -1,0 +1,17 @@
+{
+  "version": "1.1.4",
+  "files": {
+    "datasets/evaluation/v2/training.txt": "4328b4b00e07b9e48a1fdbd8371711167cf47c94e7fa58c3c18b14f97613b690",
+    "datasets/evaluation/v2/holdout.json": "d020831648d0fccc24366976950f8589e78c75d99ef11c352d6fd56163ac6436",
+    "app/src/main/assets/semantic/classifier.json": "3d571a5859807ec45d057009b94cf98e9539fabe15de2de74bc2397b737836af",
+    "app/src/main/assets/semantic/model.onnx": "15b717c382bcb518ba457b93ea6850ede7f4f1cd8937454aa06972366cd19bcc",
+    ".model-cache/tokenizer.json": "48cea5d44424912a6fd1ea647bf4fe50b55ab8b1e5879c3275f80e339e8fae26",
+    "app/src/main/java/com/notifyforward/app/engine/SemanticEngine.kt": "9314e0c6a97d362cf17248b0c5022a0d40f0afb65b290f0da422bc0f980cfd4d",
+    "app/build/outputs/apk/debug/app-debug.apk": "b0d59a0b881f858a00e52fb25772bfb6f78f6e1ed44aeceb5f252922c5996851"
+  },
+  "fit": "80 synthetic training rows only; original 48 development; 40 frozen holdout",
+  "thresholds": [
+    0.35,
+    0.65
+  ]
+}

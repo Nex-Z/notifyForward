@@ -1,5 +1,8 @@
 package com.notifyforward.app.util
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -83,7 +86,7 @@ object Notices {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setAutoCancel(true)
             .build()
-        runCatching { NotificationManagerCompat.from(context).notify(ID_SUMMARY, n) }
+        notifySafely(context, ID_SUMMARY, n)
     }
 
     fun cancelSummary(context: Context) {
@@ -107,7 +110,7 @@ object Notices {
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
-        runCatching { NotificationManagerCompat.from(context).notify(ID_ALERT, n) }
+        notifySafely(context, ID_ALERT, n)
     }
 
     fun cancelListenerAlert(context: Context) {
@@ -141,8 +144,17 @@ object Notices {
             .setContentIntent(contentIntent)
             .setAutoCancel(true)
             .build()
-        runCatching {
-            NotificationManagerCompat.from(context).notify(2000 + (record.id % 1000).toInt(), n)
+        notifySafely(context, 2000 + (record.id % 1000).toInt(), n)
+    }
+
+    private fun notifySafely(context: Context, id: Int, notification: android.app.Notification) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED) return
+        try {
+            NotificationManagerCompat.from(context).notify(id, notification)
+        } catch (_: SecurityException) {
+            // 权限可能在检查之后被收回；自身通知失败不应中断转发。
         }
     }
 

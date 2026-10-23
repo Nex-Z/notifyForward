@@ -1,0 +1,521 @@
+{
+  "version": 1,
+  "provenance": "Agent-authored synthetic diagnostic scenarios; not observed notifications; author knew implementation. Not representative or independent benchmark.",
+  "profile": "User wants personal/work/transaction/safety/subscribed alerts; rejects unsolicited commercial promotion and recommendation pushes. Friend-shared offers are normal; unsolicited scam messages are spam.",
+  "tests": [
+    {
+      "id": "T001",
+      "app": "微信",
+      "package": "com.tencent.mm",
+      "title": "姐姐",
+      "text": "这家店满两百减五十，你上次想买的锅正在做活动。",
+      "label": 1
+    },
+    {
+      "id": "T002",
+      "app": "微信",
+      "package": "com.tencent.mm",
+      "title": "同事",
+      "text": "直播间有折扣，帮我看看这个显示器值不值得买。",
+      "label": 1
+    },
+    {
+      "id": "T003",
+      "app": "微信",
+      "package": "com.tencent.mm",
+      "title": "项目群",
+      "text": "客户尾款已经打过来了，明早核对合同。",
+      "label": 1
+    },
+    {
+      "id": "T004",
+      "app": "微信",
+      "package": "com.tencent.mm",
+      "title": "陌生账号",
+      "text": "跟着老师买币，一周翻倍，先转五百激活资格。",
+      "label": 2
+    },
+    {
+      "id": "T005",
+      "app": "微信",
+      "package": "com.tencent.mm",
+      "title": "活动助手",
+      "text": "恭喜被选为幸运用户，添加客服领手机，需先付邮费。",
+      "label": 2
+    },
+    {
+      "id": "T006",
+      "app": "微信",
+      "package": "com.tencent.mm",
+      "title": "推广群",
+      "text": "优惠券今晚失效，点这里领取再下单！",
+      "label": 2
+    },
+    {
+      "id": "T007",
+      "app": "购物应用",
+      "package": "eval.shopping",
+      "title": "配送更新",
+      "text": "你的耳机已交给配送员，今天十八点前送达。",
+      "label": 1
+    },
+    {
+      "id": "T008",
+      "app": "购物应用",
+      "package": "eval.shopping",
+      "title": "退款进度",
+      "text": "退货审核通过，实付款将在三个工作日退回原账户。",
+      "label": 1
+    },
+    {
+      "id": "T009",
+      "app": "购物应用",
+      "package": "eval.shopping",
+      "title": "售后服务",
+      "text": "商品存在安全缺陷，请停止使用并申请召回。",
+      "label": 1
+    },
+    {
+      "id": "T010",
+      "app": "购物应用",
+      "package": "eval.shopping",
+      "title": "精选推荐",
+      "text": "这家店满两百减五十，你上次想买的锅正在做活动。",
+      "label": 2
+    },
+    {
+      "id": "T011",
+      "app": "购物应用",
+      "package": "eval.shopping",
+      "title": "专享活动",
+      "text": "优惠券今晚失效，点这里领取再下单！",
+      "label": 2
+    },
+    {
+      "id": "T012",
+      "app": "购物应用",
+      "package": "eval.shopping",
+      "title": "购物提醒",
+      "text": "为你挑选了十款热卖商品，进店还有额外惊喜。",
+      "label": 2
+    },
+    {
+      "id": "T013",
+      "app": "银行应用",
+      "package": "eval.bank",
+      "title": "账户变动",
+      "text": "尾号1234账户支出86.00元，商户：社区超市。",
+      "label": 1
+    },
+    {
+      "id": "T014",
+      "app": "银行应用",
+      "package": "eval.bank",
+      "title": "安全提醒",
+      "text": "检测到新设备登录，如非本人请立即冻结账户。",
+      "label": 1
+    },
+    {
+      "id": "T015",
+      "app": "银行应用",
+      "package": "eval.bank",
+      "title": "还款提醒",
+      "text": "本期账单明日到期，待还金额320元，请及时还款。",
+      "label": 1
+    },
+    {
+      "id": "T016",
+      "app": "银行应用",
+      "package": "eval.bank",
+      "title": "财富推荐",
+      "text": "精选理财产品限量开售，预约可领取体验金。",
+      "label": 2
+    },
+    {
+      "id": "T017",
+      "app": "银行应用",
+      "package": "eval.bank",
+      "title": "信用卡专区",
+      "text": "周末刷卡享餐饮折扣，报名活动还能抽大奖。",
+      "label": 2
+    },
+    {
+      "id": "T018",
+      "app": "银行应用",
+      "package": "eval.bank",
+      "title": "额度邀请",
+      "text": "尊享客户专属消费贷，最高二十万，立即测额度。",
+      "label": 2
+    },
+    {
+      "id": "T019",
+      "app": "外卖应用",
+      "package": "eval.delivery",
+      "title": "骑手消息",
+      "text": "小区南门无法进入，请到门口领取餐品。",
+      "label": 1
+    },
+    {
+      "id": "T020",
+      "app": "外卖应用",
+      "package": "eval.delivery",
+      "title": "食品安全",
+      "text": "商家反馈餐品可能含有过敏原，请勿食用，客服将联系您。",
+      "label": 1
+    },
+    {
+      "id": "T021",
+      "app": "外卖应用",
+      "package": "eval.delivery",
+      "title": "订单延迟",
+      "text": "由于暴雨，你的晚餐预计延迟二十分钟送达。",
+      "label": 1
+    },
+    {
+      "id": "T022",
+      "app": "外卖应用",
+      "package": "eval.delivery",
+      "title": "午餐推荐",
+      "text": "今天吃点好的，下单双人套餐立减十五。",
+      "label": 2
+    },
+    {
+      "id": "T023",
+      "app": "外卖应用",
+      "package": "eval.delivery",
+      "title": "红包提醒",
+      "text": "你有一张未使用的外卖券，今晚不用就过期啦。",
+      "label": 2
+    },
+    {
+      "id": "T024",
+      "app": "外卖应用",
+      "package": "eval.delivery",
+      "title": "会员邀请",
+      "text": "升级月卡，天天享免配送费权益，首月特惠。",
+      "label": 2
+    },
+    {
+      "id": "T025",
+      "app": "办公应用",
+      "package": "eval.work",
+      "title": "开发群",
+      "text": "今晚发布取消，发现支付接口超时，请值班同学排查。",
+      "label": 1
+    },
+    {
+      "id": "T026",
+      "app": "办公应用",
+      "package": "eval.work",
+      "title": "同事分享",
+      "text": "优惠券今晚失效，点这里领取再下单！",
+      "label": 1
+    },
+    {
+      "id": "T027",
+      "app": "办公应用",
+      "package": "eval.work",
+      "title": "审批中心",
+      "text": "你的出差申请已批准，请按流程预订酒店。",
+      "label": 1
+    },
+    {
+      "id": "T028",
+      "app": "办公应用",
+      "package": "eval.work",
+      "title": "产品活动",
+      "text": "开通企业高级版限时优惠，订购三年赠送一年。",
+      "label": 2
+    },
+    {
+      "id": "T029",
+      "app": "办公应用",
+      "package": "eval.work",
+      "title": "课程推荐",
+      "text": "免费领取管理秘籍，报名课程享专属折扣。",
+      "label": 2
+    },
+    {
+      "id": "T030",
+      "app": "办公应用",
+      "package": "eval.work",
+      "title": "推广消息",
+      "text": "数字化峰会报名最后一天，立即抢购早鸟票。",
+      "label": 2
+    },
+    {
+      "id": "T031",
+      "app": "新闻应用",
+      "package": "eval.news",
+      "title": "订阅预警",
+      "text": "你订阅的本市发布暴雨红色预警，学校明日停课。",
+      "label": 1
+    },
+    {
+      "id": "T032",
+      "app": "新闻应用",
+      "package": "eval.news",
+      "title": "出行预警",
+      "text": "附近道路发生塌方，请绕行东侧道路。",
+      "label": 1
+    },
+    {
+      "id": "T033",
+      "app": "新闻应用",
+      "package": "eval.news",
+      "title": "关注更新",
+      "text": "你关注的考试报名通知已发布，截止日期为周五。",
+      "label": 1
+    },
+    {
+      "id": "T034",
+      "app": "新闻应用",
+      "package": "eval.news",
+      "title": "热门推荐",
+      "text": "惊人内幕曝光！这些明星的生活竟然是这样。",
+      "label": 2
+    },
+    {
+      "id": "T035",
+      "app": "新闻应用",
+      "package": "eval.news",
+      "title": "猜你喜欢",
+      "text": "你绝对想不到，三十年前的老照片又火了。",
+      "label": 2
+    },
+    {
+      "id": "T036",
+      "app": "新闻应用",
+      "package": "eval.news",
+      "title": "会员福利",
+      "text": "购买年度会员享专栏全解锁，今天价格最低。",
+      "label": 2
+    },
+    {
+      "id": "T037",
+      "app": "视频应用",
+      "package": "eval.video",
+      "title": "账号安全",
+      "text": "账户密码已修改，如非本人操作请立即联系客服。",
+      "label": 1
+    },
+    {
+      "id": "T038",
+      "app": "视频应用",
+      "package": "eval.video",
+      "title": "预约提醒",
+      "text": "你预约的线上课程将在十分钟后开始。",
+      "label": 1
+    },
+    {
+      "id": "T039",
+      "app": "视频应用",
+      "package": "eval.video",
+      "title": "支付通知",
+      "text": "自动续费将在明日扣款，金额25元，可在设置中取消。",
+      "label": 1
+    },
+    {
+      "id": "T040",
+      "app": "视频应用",
+      "package": "eval.video",
+      "title": "热门视频",
+      "text": "全网都在追的神剧更新了，快来解锁精彩剧情。",
+      "label": 2
+    },
+    {
+      "id": "T041",
+      "app": "视频应用",
+      "package": "eval.video",
+      "title": "直播推荐",
+      "text": "你可能喜欢的主播正在带货，进直播间领福利。",
+      "label": 2
+    },
+    {
+      "id": "T042",
+      "app": "视频应用",
+      "package": "eval.video",
+      "title": "会员促销",
+      "text": "限时买一年送半年，马上升级畅看无广告。",
+      "label": 2
+    },
+    {
+      "id": "T043",
+      "app": "系统工具",
+      "package": "eval.system",
+      "title": "存储警告",
+      "text": "设备剩余空间不足500MB，可能影响拍照和接收文件。",
+      "label": 1
+    },
+    {
+      "id": "T044",
+      "app": "系统工具",
+      "package": "eval.system",
+      "title": "备份失败",
+      "text": "照片备份未完成，请连接网络后重试。",
+      "label": 1
+    },
+    {
+      "id": "T045",
+      "app": "系统工具",
+      "package": "eval.system",
+      "title": "安全中心",
+      "text": "发现应用正在后台读取剪贴板，请检查权限。",
+      "label": 1
+    },
+    {
+      "id": "T046",
+      "app": "系统工具",
+      "package": "eval.system",
+      "title": "清理推荐",
+      "text": "手机垃圾太多了，点击下载极速清理大师，马上提速。",
+      "label": 2
+    },
+    {
+      "id": "T047",
+      "app": "系统工具",
+      "package": "eval.system",
+      "title": "皮肤商城",
+      "text": "新款动态壁纸上线，购买会员即可免费使用。",
+      "label": 2
+    },
+    {
+      "id": "T048",
+      "app": "系统工具",
+      "package": "eval.system",
+      "title": "福利提醒",
+      "text": "打开应用签到领现金，连续七天有机会拿大奖。",
+      "label": 2
+    }
+  ],
+  "support": [
+    {
+      "id": "S001",
+      "app": "微信",
+      "package": "com.tencent.mm",
+      "title": "朋友",
+      "text": "我买了两张电影票，你下班后有空一起去吗？",
+      "label": 1
+    },
+    {
+      "id": "S002",
+      "app": "微信",
+      "package": "com.tencent.mm",
+      "title": "推销账号",
+      "text": "无需面审即可借十万，加我办理，需要预付服务费。",
+      "label": 2
+    },
+    {
+      "id": "S003",
+      "app": "购物应用",
+      "package": "eval.shopping",
+      "title": "订单状态",
+      "text": "订单已取消，支付款项已原路退回。",
+      "label": 1
+    },
+    {
+      "id": "S004",
+      "app": "购物应用",
+      "package": "eval.shopping",
+      "title": "折扣通知",
+      "text": "年中大促开启，领津贴购物更划算，快来逛逛。",
+      "label": 2
+    },
+    {
+      "id": "S005",
+      "app": "银行应用",
+      "package": "eval.bank",
+      "title": "支付结果",
+      "text": "转账未成功，款项没有扣除，请检查收款账户。",
+      "label": 1
+    },
+    {
+      "id": "S006",
+      "app": "银行应用",
+      "package": "eval.bank",
+      "title": "福利专区",
+      "text": "开通新卡送购物券，邀请亲友再得积分奖励。",
+      "label": 2
+    },
+    {
+      "id": "S007",
+      "app": "外卖应用",
+      "package": "eval.delivery",
+      "title": "订单取消",
+      "text": "店家无法接单，已退款，请重新选择餐厅。",
+      "label": 1
+    },
+    {
+      "id": "S008",
+      "app": "外卖应用",
+      "package": "eval.delivery",
+      "title": "美食优惠",
+      "text": "下午茶第二杯半价，凑单还能领取红包。",
+      "label": 2
+    },
+    {
+      "id": "S009",
+      "app": "办公应用",
+      "package": "eval.work",
+      "title": "任务中心",
+      "text": "你负责的需求评审改到周四，请更新交付时间。",
+      "label": 1
+    },
+    {
+      "id": "S010",
+      "app": "办公应用",
+      "package": "eval.work",
+      "title": "升级推荐",
+      "text": "团队套餐年度特卖，邀请管理员咨询销售领取优惠。",
+      "label": 2
+    },
+    {
+      "id": "S011",
+      "app": "新闻应用",
+      "package": "eval.news",
+      "title": "天气订阅",
+      "text": "你所在区域预计一小时内有雷暴，请注意安全。",
+      "label": 1
+    },
+    {
+      "id": "S012",
+      "app": "新闻应用",
+      "package": "eval.news",
+      "title": "内容推荐",
+      "text": "热榜第一太精彩了，点进来看看大家都在讨论什么。",
+      "label": 2
+    },
+    {
+      "id": "S013",
+      "app": "视频应用",
+      "package": "eval.video",
+      "title": "上传结果",
+      "text": "你上传的视频审核未通过，请查看原因并修改。",
+      "label": 1
+    },
+    {
+      "id": "S014",
+      "app": "视频应用",
+      "package": "eval.video",
+      "title": "猜你喜欢",
+      "text": "这些搞笑片段让人笑不停，打开看看吧。",
+      "label": 2
+    },
+    {
+      "id": "S015",
+      "app": "系统工具",
+      "package": "eval.system",
+      "title": "电池提醒",
+      "text": "电量仅剩百分之五，请及时连接充电器。",
+      "label": 1
+    },
+    {
+      "id": "S016",
+      "app": "系统工具",
+      "package": "eval.system",
+      "title": "软件推广",
+      "text": "推荐安装应用赚积分，完成任务换礼品。",
+      "label": 2
+    }
+  ]
+}

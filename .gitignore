@@ -26,3 +26,5 @@
 *.jks
 *.keystore
 
+
+/.model-cache/

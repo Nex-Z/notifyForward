@@ -6,10 +6,11 @@
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorPrimaryContainer">@color/brand_container</item>
         <item name="colorOnPrimaryContainer">@color/brand_primary_dark</item>
-        <item name="colorSecondary">@color/accent</item>
+        <item name="colorSecondary">@color/brand_primary</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorSurfaceContainerHigh">@color/surface</item>
         <item name="colorSurfaceVariant">@color/surface_alt</item>
         <item name="colorOnSurfaceVariant">@color/text_secondary</item>
         <item name="colorOutline">@color/divider</item>
@@ -28,6 +29,7 @@
         <item name="shapeAppearanceOverlay">@style/ShapeAppearance.NotifyForward.Dialog</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorSurfaceContainerHigh">@color/surface</item>
     </style>
 
     <style name="ShapeAppearance.NotifyForward.Dialog" parent="">
@@ -110,8 +112,10 @@
         <item name="android:minHeight">@dimen/row_min_height</item>
         <item name="android:orientation">horizontal</item>
         <item name="android:gravity">center_vertical</item>
-        <item name="android:paddingHorizontal">@dimen/space_4</item>
-        <item name="android:paddingVertical">10dp</item>
+        <item name="android:paddingLeft">@dimen/space_4</item>
+        <item name="android:paddingRight">@dimen/space_4</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
         <item name="android:background">?attr/selectableItemBackground</item>
     </style>
 
@@ -133,5 +137,16 @@
     <style name="TextAppearance.NotifyForward.NavLabel" parent="TextAppearance.Material3.LabelSmall">
         <item name="android:textSize">10sp</item>
         <item name="android:letterSpacing">0</item>
+    </style>
+    <style name="Widget.NotifyForward.Switch" parent="Widget.AppCompat.CompoundButton.Switch">
+        <item name="android:thumb">@drawable/switch_thumb</item>
+        <item name="track">@drawable/switch_track</item>
+        <item name="thumbTint">@null</item>
+        <item name="trackTint">@null</item>
+        <item name="switchMinWidth">51dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:background">@null</item>
+        <item name="showText">false</item>
+        <item name="splitTrack">false</item>
     </style>
 </resources>

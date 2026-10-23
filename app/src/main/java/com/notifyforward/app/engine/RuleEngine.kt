@@ -32,6 +32,9 @@ object RuleEngine {
         val lower = haystack.lowercase()
         val keywords = rule.keywords.map { it.trim() }.filter { it.isNotEmpty() }
 
+        // 正则规则使用独立的 regex 字段，不依赖关键词列表。
+        if (rule.matchMode == FilterRule.MatchMode.REGEX) return regexMatches(rule.regex, haystack)
+        if (rule.matchMode == FilterRule.MatchMode.JSON_REGEX) return regexMatches(rule.regex, buildJson(r))
         if (keywords.isEmpty()) {
             // 没有关键词时，只有「仅指定应用」的规则可以视为“该应用全部通知”
             return rule.appMode == FilterRule.AppMode.ONLY
@@ -77,6 +80,19 @@ object RuleEngine {
             compareByDescending<FilterRule> { it.priority }.thenBy { it.id }
         )
         return ordered.firstOrNull { match(it, r) }
+    }
+
+    /** Filtering uses the first matching rule; forwarding evaluates its own app/content scope. */
+    fun executionMatches(rules: List<FilterRule>, r: NotifRecord): List<FilterRule> {
+        val matches = rules.filter { match(it, r) }.sortedWith(compareByDescending<FilterRule> { it.priority }.thenBy { it.id })
+        val filter = matches.firstOrNull { it.effectDismiss || it.muteSeconds > 0 || it.tts || it.actionButtons.isNotBlank() }
+        return matches.mapNotNull { rule ->
+            if (rule == filter) {
+                if (r.category == "call") rule.copy(effectDismiss = false, muteSeconds = 0, actionButtons = "") else rule
+            }
+            else if (rule.bark || rule.webhookUrl.isNotBlank()) rule.copy(effectDismiss = false, muteSeconds = 0, tts = false, actionButtons = "")
+            else null
+        }
     }
 
     /** 在历史记录上回放统计命中数量（用于编辑规则时的“测试命中”）。 */

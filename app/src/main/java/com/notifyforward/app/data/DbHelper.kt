@@ -26,6 +26,8 @@ class DbHelper private constructor(context: Context) :
 
     override fun onOpen(db: SQLiteDatabase) {
         super.onOpen(db)
+        db.execSQL("CREATE TABLE IF NOT EXISTS forwarding_attempts (_id INTEGER PRIMARY KEY AUTOINCREMENT, notification_id INTEGER NOT NULL REFERENCES notifications(_id) ON DELETE CASCADE, destination TEXT NOT NULL, rule_name TEXT NOT NULL, started INTEGER NOT NULL, finished INTEGER NOT NULL DEFAULT 0, state TEXT NOT NULL DEFAULT 'pending', code INTEGER NOT NULL DEFAULT 0)")
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_forward_notification ON forwarding_attempts(notification_id)")
         runCatching { db.execSQL("PRAGMA busy_timeout = 5000") }
     }
 
@@ -56,7 +58,8 @@ class DbHelper private constructor(context: Context) :
                 ai_score REAL NOT NULL DEFAULT 0,
                 source INTEGER NOT NULL DEFAULT 0,
                 feedback INTEGER NOT NULL DEFAULT 0,
-                hidden INTEGER NOT NULL DEFAULT 0
+                hidden INTEGER NOT NULL DEFAULT 0,
+                forward_error TEXT NOT NULL DEFAULT ''
             )
             """.trimIndent()
         )
@@ -93,6 +96,9 @@ class DbHelper private constructor(context: Context) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 4) {
+            db.execSQL("ALTER TABLE notifications ADD COLUMN forward_error TEXT NOT NULL DEFAULT ''")
+        }
         // 两个进程可能同时升级，逐列判断 + 忽略重复列，保证幂等
         if (oldVersion < 2) {
             db.addColumnIfMissing("rules", "bark", "ALTER TABLE rules ADD COLUMN bark INTEGER NOT NULL DEFAULT 0")
@@ -176,6 +182,43 @@ class DbHelper private constructor(context: Context) :
         writableDatabase.execSQL(
             "UPDATE notifications SET action = action | ? WHERE _id = ?",
             arrayOf<Any>(flag, id)
+        )
+    }
+
+    fun queryForwarded(query: String = "", limit: Int = 400): List<NotifRecord> = readableDatabase.rawQuery(
+        "SELECT * FROM notifications WHERE hidden=0 AND ((action & ?) != 0 OR forward_error != '' OR EXISTS (SELECT 1 FROM forwarding_attempts f WHERE f.notification_id=notifications._id)) AND (title LIKE ? OR text LIKE ? OR app_name LIKE ?) ORDER BY post_time DESC LIMIT ?",
+        arrayOf((NotifRecord.Action.BARK or NotifRecord.Action.WEBHOOK).toString(), "%$query%", "%$query%", "%$query%", limit.toString())
+    ).use { c -> buildList { while (c.moveToNext()) add(readRecord(c)) } }
+
+    fun beginForward(id: Long, destination: String, ruleName: String): Long = writableDatabase.insertOrThrow("forwarding_attempts", null, ContentValues().apply {
+        put("notification_id", id); put("destination", destination); put("rule_name", ruleName); put("started", System.currentTimeMillis())
+    })
+
+    fun finishForward(attempt: Long, ok: Boolean, code: Int) {
+        writableDatabase.update("forwarding_attempts", ContentValues().apply {
+            put("finished", System.currentTimeMillis()); put("state", if (ok) "success" else "failure"); put("code", code)
+        }, "_id=?", arrayOf(attempt.toString()))
+    }
+
+    fun forwardingSummary(id: Long): String = readableDatabase.rawQuery(
+        "SELECT destination, rule_name, started, state, code FROM forwarding_attempts WHERE notification_id=? ORDER BY _id", arrayOf(id.toString())
+    ).use { c -> buildList {
+        while (c.moveToNext()) {
+            val time = java.text.SimpleDateFormat("MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date(c.getLong(2)))
+            val state = when (c.getString(3)) {
+                "success" -> "服务端已确认（HTTP ${c.getInt(4)}）"
+                "failure" -> if (c.getInt(4) == 0) "失败：网络或配置错误" else "失败：HTTP ${c.getInt(4)}"
+                else -> if (System.currentTimeMillis() - c.getLong(2) > 120_000) "结果未确认，可能已中断；未自动重试" else "发送中"
+            }
+            add("$time · ${c.getString(0)}\n规则：${c.getString(1)}\n$state")
+        }
+    }.joinToString("\n\n") }
+
+    fun addForwardError(id: Long, destination: String, code: Int) {
+        val reason = if (code == 0) "网络不可用或配置错误" else "服务器未确认成功（HTTP $code）"
+        writableDatabase.execSQL(
+            "UPDATE notifications SET forward_error = forward_error || ? WHERE _id = ?",
+            arrayOf<Any>("$destination 转发失败：$reason；未自动重试。\n", id)
         )
     }
 
@@ -509,7 +552,8 @@ class DbHelper private constructor(context: Context) :
         aiScore = c.getFloat(c.getColumnIndexOrThrow("ai_score")),
         source = c.getInt(c.getColumnIndexOrThrow("source")),
         feedback = c.getInt(c.getColumnIndexOrThrow("feedback")),
-        hidden = c.getInt(c.getColumnIndexOrThrow("hidden")) == 1
+        hidden = c.getInt(c.getColumnIndexOrThrow("hidden")) == 1,
+        forwardError = c.getString(c.getColumnIndexOrThrow("forward_error")).orEmpty()
     )
 
     private fun readRule(c: Cursor) = FilterRule(
@@ -547,7 +591,7 @@ class DbHelper private constructor(context: Context) :
 
     companion object {
         private const val DB_NAME = "notifyforward.db"
-        private const val DB_VERSION = 3
+        private const val DB_VERSION = 4
 
         @Volatile
         private var instance: DbHelper? = null

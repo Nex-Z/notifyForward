@@ -11,7 +11,6 @@ import android.util.Log
 import com.notifyforward.app.data.DbHelper
 import com.notifyforward.app.data.DataEvents
 import com.notifyforward.app.data.Settings
-import com.notifyforward.app.engine.AiEngine
 import com.notifyforward.app.engine.BarkClient
 import com.notifyforward.app.engine.DndController
 import com.notifyforward.app.engine.RuleEngine
@@ -42,7 +41,6 @@ class NotifyListenerService : NotificationListenerService() {
     private val retryHandler = Handler(Looper.getMainLooper())
     private val retryDelays = longArrayOf(1000L, 3000L, 10000L, 30000L, 60000L)
 
-    private val recentPosts = HashMap<String, MutableList<Long>>()
 
     override fun onListenerConnected() {
         super.onListenerConnected()
@@ -106,7 +104,7 @@ class NotifyListenerService : NotificationListenerService() {
         val media = category == Notification.CATEGORY_TRANSPORT || template.contains("MediaStyle")
 
         // 分身/多用户识别：同包名但 uid 与主应用不同，即来自克隆实例
-        val uid = sbn.uid
+        val uid = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) sbn.uid else -1
         @Suppress("DEPRECATION")
         val userId = sbn.userId
         val clone = AppInfo.isClone(this, sbn.packageName, uid)
@@ -146,22 +144,22 @@ class NotifyListenerService : NotificationListenerService() {
         }
 
         val rules = currentRules()
-        val matched = RuleEngine.firstMatch(rules, record)
+        val matches = RuleEngine.executionMatches(rules, record)
         var action = NotifRecord.Action.NONE
         var ruleName = ""
         var source = NotifRecord.Source.NONE
         var score = 0f
 
-        if (matched != null) {
+        for (matched in matches) {
             source = NotifRecord.Source.RULE
-            ruleName = matched.name
-            if (matched.effectDismiss) action = action or NotifRecord.Action.DISMISS
-            if (matched.muteSeconds > 0) {
+            ruleName = listOf(ruleName, matched.name).filter { it.isNotBlank() }.joinToString("、")
+            if (matched.effectDismiss && record.category != Notification.CATEGORY_CALL && n.fullScreenIntent == null) action = action or NotifRecord.Action.DISMISS
+            if (matched.muteSeconds > 0 && record.category != Notification.CATEGORY_CALL && n.fullScreenIntent == null) {
                 if (DndController.muteFor(this, matched.muteSeconds)) {
                     action = action or NotifRecord.Action.MUTE
                 }
             }
-            if (matched.actionButtons.isNotBlank()) {
+            if (matched.actionButtons.isNotBlank() && record.category != Notification.CATEGORY_CALL && n.fullScreenIntent == null) {
                 if (triggerAction(n, matched.actionButtons)) action = action or NotifRecord.Action.READ
             }
             if (matched.tts) TtsSpeaker.speak(this, "${record.appName}：$title $text")
@@ -169,45 +167,39 @@ class NotifyListenerService : NotificationListenerService() {
                 val recordId = id
                 val url = matched.webhookUrl
                 val body = matched.webhookBody
+                val attempt = db.beginForward(id, "Webhook", matched.name)
                 webhookExecutor.execute {
                     val res = WebhookClient.send(url, body, record, matched)
+                    db.finishForward(attempt, res.ok, res.code)
                     if (res.ok) {
                         db.addAction(recordId, NotifRecord.Action.WEBHOOK)
                         DataEvents.notifyChanged(this)
                     }
-                    Log.d(TAG, "webhook ${res.code} ${res.message}")
+                    if (!res.ok) {
+                        db.addForwardError(recordId, "Webhook", res.code)
+                        DataEvents.notifyChanged(this)
+                    }
+                    Log.d(TAG, "webhook HTTP ${res.code}, ok=${res.ok}")
                 }
             }
             if (matched.bark) {
                 val recordId = id
+                val attempt = db.beginForward(id, "Bark", matched.name)
                 webhookExecutor.execute {
                     val res = BarkClient.send(this, record)
+                    db.finishForward(attempt, res.ok, res.code)
                     if (res.ok) {
                         db.addAction(recordId, NotifRecord.Action.BARK)
                         DataEvents.notifyChanged(this)
                     }
-                    Log.d(TAG, "bark ${res.code} ${res.message}")
+                    if (!res.ok) {
+                        db.addForwardError(recordId, "Bark", res.code)
+                        DataEvents.notifyChanged(this)
+                    }
+                    Log.d(TAG, "bark HTTP ${res.code}, ok=${res.ok}")
                 }
             }
             db.incrementHit(matched.id)
-        } else if (settings.aiEnabled) {
-            score = AiEngine.score(this, title, "$text $bigText")
-            if (score >= settings.aiThreshold) {
-                source = NotifRecord.Source.AI
-                ruleName = "AI 智能识别"
-                action = action or NotifRecord.Action.DISMISS
-            }
-        }
-
-        // 智能静音：同一应用在短时间内高频推送时，自动压制铃声
-        if (action and NotifRecord.Action.DISMISS == 0 && settings.smartMute) {
-            if (isBurst(sbn.packageName, settings.smartMuteBurst, settings.smartMuteWindowSec)) {
-                if (DndController.muteFor(this, settings.smartMuteSeconds)) {
-                    action = action or NotifRecord.Action.MUTE
-                    if (ruleName.isBlank()) ruleName = "智能静音"
-                    if (source == NotifRecord.Source.NONE) source = NotifRecord.Source.RULE
-                }
-            }
         }
 
         if (action and NotifRecord.Action.DISMISS != 0) {
@@ -222,23 +214,17 @@ class NotifyListenerService : NotificationListenerService() {
                 Notices.postSummary(this, filtered)
             }
         } else {
-            db.updateResult(id, 0, "", 0, score)
+            db.updateResult(id, 0, ruleName, source, score)
+        }
+        if (settings.aiEnabled) {
+            runCatching { com.notifyforward.app.engine.SemanticObserver.enqueue(this, record.copy(id = id)) }
+                .onFailure { Log.w(TAG, "Could not queue observation", it) }
         }
         DataEvents.notifyChanged(this)
     }
 
     private fun currentRules(): List<FilterRule> =
         DbHelper.get(this).getEnabledRules()
-
-    private fun isBurst(pkg: String, burst: Int, windowSec: Int): Boolean {
-        val now = System.currentTimeMillis()
-        val window = windowSec * 1000L
-        val list = recentPosts.getOrPut(pkg) { ArrayList() }
-        list.removeAll { now - it > window }
-        list.add(now)
-        if (recentPosts.size > 200) recentPosts.clear()
-        return list.size >= burst
-    }
 
     private fun isConversation(n: Notification, category: String): Boolean {
         if (category == Notification.CATEGORY_MESSAGE || category == Notification.CATEGORY_EMAIL) return true

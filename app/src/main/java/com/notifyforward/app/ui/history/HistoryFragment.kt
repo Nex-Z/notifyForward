@@ -25,7 +25,6 @@ import com.notifyforward.app.data.DataEvents
 import com.notifyforward.app.data.DbHelper
 import com.notifyforward.app.data.Settings
 import com.notifyforward.app.databinding.FragmentHistoryBinding
-import com.notifyforward.app.engine.AiEngine
 import com.notifyforward.app.model.NotifRecord
 import com.notifyforward.app.ui.Refreshable
 import kotlinx.coroutines.Dispatchers
@@ -89,6 +88,7 @@ class HistoryFragment : Fragment(), Refreshable {
             filter = when (checkedIds.firstOrNull()) {
                 R.id.chipFiltered -> FILTER_FILTERED
                 R.id.chipNormal -> FILTER_NORMAL
+                R.id.chipForwarded -> FILTER_FORWARDED
                 else -> FILTER_ALL
             }
             load()
@@ -117,7 +117,9 @@ class HistoryFragment : Fragment(), Refreshable {
         loadJob = viewLifecycleOwner.lifecycleScope.launch {
             val rows = withContext(Dispatchers.IO) {
                 val db = DbHelper.get(ctx)
-                if (query.isBlank()) {
+                if (filter == FILTER_FORWARDED) {
+                    db.queryForwarded(query)
+                } else if (query.isBlank()) {
                     db.queryNotifications(
                         limit = 400,
                         onlyFiltered = when (filter) {
@@ -191,9 +193,7 @@ class HistoryFragment : Fragment(), Refreshable {
             getString(R.string.action_copy),
             getString(R.string.action_delete)
         )
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(record.title.ifBlank { record.appName })
-            .setItems(items) { _, which ->
+        com.notifyforward.app.ui.ChoiceSheet.show(requireContext(), record.appName, items.toList()) { which ->
                 when (which) {
                     0 -> feedback(record, NotifRecord.Feedback.NORMAL)
                     1 -> feedback(record, NotifRecord.Feedback.SPAM)
@@ -202,12 +202,17 @@ class HistoryFragment : Fragment(), Refreshable {
                         Toast.makeText(requireContext(), R.string.toast_copied, Toast.LENGTH_SHORT).show()
                     }
                     3 -> {
-                        DbHelper.get(requireContext()).deleteNotification(record.id)
-                        load()
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("删除这条历史记录？")
+                            .setMessage("同时删除该通知的转发记录，个人标注仍保留。")
+                            .setNegativeButton("保留", null)
+                            .setPositiveButton("删除记录") { _, _ ->
+                                DbHelper.get(requireContext()).deleteNotification(record.id)
+                                load()
+                            }.show()
                     }
                 }
             }
-            .show()
     }
 
     private fun copy(record: NotifRecord) {
@@ -218,15 +223,15 @@ class HistoryFragment : Fragment(), Refreshable {
     private fun feedback(record: NotifRecord, kind: Int) {
         val ctx = requireContext()
         viewLifecycleOwner.lifecycleScope.launch {
-            withContext(Dispatchers.IO) {
-                val db = DbHelper.get(ctx)
-                db.setFeedback(record.id, kind)
-                AiEngine.train(ctx, record.title, record.displayText, kind == NotifRecord.Feedback.SPAM)
+            val result = withContext(Dispatchers.IO) { runCatching {
+                com.notifyforward.app.engine.LearningStore(ctx).label(record, kind)
+            } }
+            if (result.isFailure) {
+                Toast.makeText(ctx, "标注保存失败，请稍后重试", Toast.LENGTH_SHORT).show()
+                return@launch
             }
             load()
-            if (kind == NotifRecord.Feedback.NORMAL) {
-                maybeSuggestExclude(record.packageName, record.appName)
-            }
+            Toast.makeText(ctx, "标注已保存，重复标注不会增加样本数", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -269,5 +274,6 @@ class HistoryFragment : Fragment(), Refreshable {
         const val FILTER_ALL = 0
         const val FILTER_FILTERED = 1
         const val FILTER_NORMAL = 2
+        const val FILTER_FORWARDED = 3
     }
 }
