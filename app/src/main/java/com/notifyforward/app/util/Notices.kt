@@ -94,8 +94,11 @@ object Notices {
     }
 
     /** 通知使用权被系统断开时的提醒。 */
-    fun postListenerDisconnected(context: Context) {
+    fun postListenerDisconnected(context: Context): Boolean {
         ensureChannels(context)
+        val nm = context.getSystemService(NotificationManager::class.java)
+        if (!NotificationManagerCompat.from(context).areNotificationsEnabled() ||
+            (Build.VERSION.SDK_INT >= 26 && nm.getNotificationChannel(CHANNEL_ALERT)?.importance == NotificationManager.IMPORTANCE_NONE)) return false
         val pi = PendingIntent.getActivity(
             context, 2,
             Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
@@ -104,13 +107,15 @@ object Notices {
         )
         val n = NotificationCompat.Builder(context, CHANNEL_ALERT)
             .setSmallIcon(R.drawable.ic_shield)
-            .setContentTitle("通知访问已断开")
-            .setContentText("点击重新开启通知使用权，否则无法继续过滤通知")
+            .setContentTitle("通知采集已中断，自动恢复失败")
+            .setContentText("请在系统设置中关闭再开启「通知哨兵」的通知访问权限")
+            .setStyle(NotificationCompat.BigTextStyle().bigText("多次重连后仍未连接，通知采集与转发已中断。点此进入系统设置，关闭再开启「通知哨兵」的通知访问权限。"))
+            .setOnlyAlertOnce(true)
             .setContentIntent(pi)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
-        notifySafely(context, ID_ALERT, n)
+        return notifySafely(context, ID_ALERT, n)
     }
 
     fun cancelListenerAlert(context: Context) {
@@ -147,14 +152,16 @@ object Notices {
         notifySafely(context, 2000 + (record.id % 1000).toInt(), n)
     }
 
-    private fun notifySafely(context: Context, id: Int, notification: android.app.Notification) {
+    private fun notifySafely(context: Context, id: Int, notification: android.app.Notification): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
-            PackageManager.PERMISSION_GRANTED) return
+            PackageManager.PERMISSION_GRANTED) return false
         try {
             NotificationManagerCompat.from(context).notify(id, notification)
+            return true
         } catch (_: SecurityException) {
             // 权限可能在检查之后被收回；自身通知失败不应中断转发。
+            return false
         }
     }
 

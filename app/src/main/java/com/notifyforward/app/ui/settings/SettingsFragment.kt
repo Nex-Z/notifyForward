@@ -14,7 +14,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -34,6 +33,10 @@ import com.notifyforward.app.ui.Refreshable
 import com.notifyforward.app.ui.rules.AppPickerDialog
 import com.notifyforward.app.util.CsvExporter
 import com.notifyforward.app.util.RuleIO
+import com.notifyforward.app.service.ListenerStatusClient
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -45,6 +48,21 @@ class SettingsFragment : Fragment(), Refreshable {
 
     private lateinit var settings: Settings
     private var pendingExportJson: String = ""
+    private var statusJob: Job? = null
+    private var listenerStatus = ListenerStatusClient.Status(false, "正在检查监听连接…", "正在向服务进程查询连接状态")
+    private val exportDiagnostics = registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        if (uri != null) {
+            val ctx = requireContext().applicationContext
+            lifecycleScope.launch {
+                val ok = withContext(Dispatchers.IO) { runCatching {
+                    val text = ListenerStatusClient.logs(ctx)
+                    check(text.isNotBlank())
+                    ctx.contentResolver.openOutputStream(uri)!!.bufferedWriter().use { it.write(text) }
+                }.isSuccess }
+                if (isAdded) toast(if (ok) "诊断日志已导出" else "导出失败，请重试")
+            }
+        }
+    }
 
     private val createLearningDoc = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) {
@@ -150,6 +168,23 @@ class SettingsFragment : Fragment(), Refreshable {
     override fun onResume() {
         super.onResume()
         refresh()
+        statusJob?.cancel()
+        statusJob = viewLifecycleOwner.lifecycleScope.launch {
+            val ctx = requireContext().applicationContext
+            while (isActive) {
+                listenerStatus = withContext(Dispatchers.IO) { ListenerStatusClient.read(ctx) }
+                if (_binding != null) {
+                    binding.tvListenerStatus.text = listenerStatus.detail
+                    sectionSummary(binding.headerPermission, "权限与连接", listenerStatus.summary)
+                }
+                delay(2_000)
+            }
+        }
+    }
+
+    override fun onPause() {
+        statusJob?.cancel()
+        super.onPause()
     }
 
     private fun sectionSummary(view: android.widget.TextView, title: String, summary: String) {
@@ -166,9 +201,7 @@ class SettingsFragment : Fragment(), Refreshable {
 
     private fun bindValues() {
         val ctx = requireContext()
-        val listenerOn = NotificationManagerCompat.getEnabledListenerPackages(ctx).contains(ctx.packageName)
-        binding.tvListenerStatus.text =
-            getString(if (listenerOn) R.string.set_listener_on else R.string.set_listener_off)
+        binding.tvListenerStatus.text = listenerStatus.detail
 
         binding.tvDndStatus.text =
             getString(if (DndController.isGranted(ctx)) R.string.set_dnd_on else R.string.set_dnd_off)
@@ -220,7 +253,7 @@ class SettingsFragment : Fragment(), Refreshable {
             ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName
         }.getOrNull() ?: "1.0.0"
         binding.tvVersion.text = getString(R.string.set_version, version)
-        sectionSummary(binding.headerPermission, "权限与连接", if (listenerOn) "通知读取已授权" else "需要开启通知读取权限")
+        sectionSummary(binding.headerPermission, "权限与连接", listenerStatus.summary)
         sectionSummary(binding.headerFilter, "功能与应用范围", "处理${if (settings.masterEnabled) "已开启" else "已关闭"} · AI${if (settings.aiEnabled) "仅观察" else "已关闭"}")
         sectionSummary(binding.headerBackground, "后台运行", "保活${if (settings.keepAlive) "已开启" else "未开启"} · 电池${if (ignoring) "无限制" else "可能受限"}")
         sectionSummary(binding.headerHistory, "历史与规则备份", "保留 ${settings.retentionDays} 天 · 导出、恢复与清理")
@@ -233,6 +266,14 @@ class SettingsFragment : Fragment(), Refreshable {
         binding.rowListener.setOnClickListener {
             runCatching { startActivity(Intent(AndroidSettings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }
         }
+        binding.rowListenerRepair.setOnClickListener {
+            val ctx = requireContext().applicationContext
+            viewLifecycleOwner.lifecycleScope.launch {
+                val ok = withContext(Dispatchers.IO) { runCatching { ListenerStatusClient.repair(ctx) }.isSuccess }
+                if (isAdded) toast(if (ok) "已请求重连，连接结果将自动更新；未授权时请先开启通知访问权限" else "服务暂时无法响应，请关闭再开启通知访问权限")
+            }
+        }
+        binding.rowListenerLogs.setOnClickListener { showListenerLogs() }
         binding.rowDnd.setOnClickListener {
             runCatching { startActivity(Intent(AndroidSettings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)) }
         }
@@ -254,7 +295,8 @@ class SettingsFragment : Fragment(), Refreshable {
                 WatchdogService.schedule(requireContext())
             } else {
                 KeepAliveService.stop(requireContext())
-                WatchdogService.cancel(requireContext())
+                // Connection monitoring remains enabled independently of foreground keep-alive.
+                if (!com.notifyforward.app.service.ListenerHealth.authorized(requireContext())) WatchdogService.cancel(requireContext())
             }
             refresh()
         }
@@ -319,6 +361,28 @@ class SettingsFragment : Fragment(), Refreshable {
             }
         }
         binding.rowBarkTest.setOnClickListener { testBark() }
+    }
+
+    private fun showListenerLogs() {
+        val ctx = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) { runCatching { ListenerStatusClient.logs(ctx) } }
+            if (!isAdded || _binding == null) return@launch
+            result.onSuccess { text ->
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("通知监听诊断日志")
+                    .setMessage("保留最近 500 条事件，不含通知正文或推送密钥。\n\n$text")
+                    .setNegativeButton("关闭", null)
+                    .setNeutralButton("复制") { _, _ ->
+                        val cm = ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        cm.setPrimaryClip(ClipData.newPlainText("通知监听诊断", text))
+                        toast("诊断日志已复制")
+                    }
+                    .setPositiveButton("导出") { _, _ ->
+                        exportDiagnostics.launch("notifyforward-diagnostics-${System.currentTimeMillis()}.txt")
+                    }.show()
+            }.onFailure { toast("诊断日志暂时无法读取，请重试") }
+        }
     }
 
     private fun mask(s: String): String =

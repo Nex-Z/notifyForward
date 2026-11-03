@@ -80,8 +80,15 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+
+        <provider
+            android:name=".service.ListenerStatusProvider"
+            android:authorities="${applicationId}.listener-status"
+            android:exported="false"
+            android:process=":service" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

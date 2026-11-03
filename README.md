@@ -89,6 +89,26 @@
 
 实测：`kill -9` 杀掉进程后 8 秒内服务自动恢复（新 PID、specialUse 前台状态），随后投递的通知仍能正常入库。
 
+## 通知监听状态与诊断（1.1.5）
+
+- 设置 → 权限与连接：分别显示授权和实际连接状态。界面通过仅本应用可访问的 IPC 查询 `:service` 进程，不使用 UI 进程的静态变量，也不把长时间没有通知当成断连。
+- 页面显示最近连接、断开、通知到达时间；可手动请求重新连接。主页面在未连接时也显示修复提示。
+- 断连后依次等待 1 / 3 / 10 / 30 / 60 秒发起重连，最后一次请求再等待 60 秒确认结果。仍未连接则发送一次「通知采集已中断，自动恢复失败」提醒，随后每 15 分钟继续尝试；连接恢复后撤销提醒。重试进度跨进程重启保留，并在设备重启后重置计时。
+- 持久化看门狗独立于前台保活开关，每 15 分钟尝试检查。系统省电、强行停止或 ROM 后台限制可能延迟执行；开启前台保活更有利于及时检查。普通应用无法自动开关系统授权，自动恢复失败时请在系统设置关闭再开启通知访问权限。
+- 若应用通知或「服务异常提醒」渠道关闭，系统通知无法显示；设置页会明确标注，并记录 `alert_blocked`。
+- 「诊断日志」保留最近 500 条事件，可查看、复制、导出。包含时间、进程 PID、系统版本、连接和授权变化、重连次数、失败及提醒结果；不记录通知正文、Webhook 地址、Bark 密钥。日志在重启后保留；升级前的旧故障无法补录。
+
+设备验收构建（不改动现有转发规则）：
+
+```powershell
+.\gradlew.bat :app:assembleDebug :app:assembleDebugAndroidTest '-PtestRunner=com.notifyforward.app.ListenerHealthAcceptance'
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb shell am instrument -w com.notifyforward.app.test/com.notifyforward.app.ListenerHealthAcceptance
+```
+
+验收临时开关通知访问权限并禁用监听组件以模拟无法重连，会中断采集数分钟；结束时恢复组件及授权。仅在已授权的测试设备上运行。
+
 ## 微信分身 / 多开
 
 分身通知能不能被读到，取决于分身是怎么实现的 —— `NotificationListenerService` 的投递范围由系统按「用户 + uid」分发：
@@ -133,6 +153,8 @@ app/src/main/java/com/notifyforward/app/
 ```
 
 ## 已知限制
+
+原生库 16 KB 对齐修复已包含在 1.1.6，检查结果和当前设备验证边界见 [16 KB 原生库兼容性验收](docs/16KB原生库兼容性验收.md)。可运行 `py scripts/check-native-alignment.py app/build/outputs/apk/debug/app-debug.apk` 检查后续产物。
 
 - Android 15+ 系统会阻止第三方读取疑似含验证码的通知，同类应用均无法绕过。
 - 静音效果依赖勿扰权限；未授权时只有「消除」生效。

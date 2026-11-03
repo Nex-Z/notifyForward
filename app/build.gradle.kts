@@ -11,9 +11,9 @@ android {
         applicationId = "com.notifyforward.app"
         minSdk = 24
         targetSdk = 36
-        testInstrumentationRunner = "com.notifyforward.app.ForwardingAcceptance"
-        versionCode = 6
-        versionName = "1.1.4"
+        testInstrumentationRunner = providers.gradleProperty("testRunner").getOrElse("com.notifyforward.app.ForwardingAcceptance")
+        versionCode = 8
+        versionName = "1.1.6"
         vectorDrawables.useSupportLibrary = true
         resourceConfigurations += listOf("zh", "en")
     }
@@ -44,7 +44,7 @@ android {
 }
 
 dependencies {
-    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.22.0")
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.31.1")
     implementation("androidx.core:core-ktx:1.16.0")
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("com.google.android.material:material:1.12.0")
@@ -54,5 +54,5 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.8.6")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
-    implementation("com.tencent:mmkv:1.3.9")
+    implementation("com.tencent:mmkv:1.3.14")
 }

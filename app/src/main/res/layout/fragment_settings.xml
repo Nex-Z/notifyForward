@@ -102,6 +102,22 @@
                         app:tint="@color/text_tertiary" />
                 </LinearLayout>
 
+                <TextView
+                    android:id="@+id/rowListenerRepair"
+                    style="@style/Widget.NotifyForward.SettingsRow"
+                    android:text="重新连接通知监听"
+                    android:textAppearance="@style/TextAppearance.NotifyForward.RowTitle"
+                    android:textColor="@color/brand_primary"
+                    android:gravity="center_vertical" />
+
+                <TextView
+                    android:id="@+id/rowListenerLogs"
+                    style="@style/Widget.NotifyForward.SettingsRow"
+                    android:text="诊断日志"
+                    android:textAppearance="@style/TextAppearance.NotifyForward.RowTitle"
+                    android:drawableEnd="@drawable/ic_chevron"
+                    android:gravity="center_vertical" />
+
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="0.5dp"

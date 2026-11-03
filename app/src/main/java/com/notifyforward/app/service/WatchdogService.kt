@@ -6,7 +6,6 @@ import android.app.job.JobScheduler
 import android.app.job.JobService
 import android.content.ComponentName
 import android.content.Context
-import android.service.notification.NotificationListenerService
 import com.notifyforward.app.data.Settings
 
 /**
@@ -20,18 +19,10 @@ class WatchdogService : JobService() {
     override fun onStartJob(params: JobParameters?): Boolean {
         val ctx = applicationContext
         val settings = Settings.get(ctx)
-        if (settings.keepAlive) {
-            if (!KeepAliveService.running) KeepAliveService.start(ctx)
-            if (!NotifyListenerService.connected) {
-                runCatching {
-                    NotificationListenerService.requestRebind(
-                        ComponentName(ctx, NotifyListenerService::class.java)
-                    )
-                }
-            }
-        }
-        jobFinished(params, false)
-        return true
+        if (settings.keepAlive && !KeepAliveService.running) KeepAliveService.start(ctx)
+        ListenerDiagnostics.record(ctx, "watchdog_check", "connected=${NotifyListenerService.connected}")
+        ListenerHealth.start(ctx, "watchdog")
+        return false
     }
 
     override fun onStopJob(params: JobParameters?): Boolean = true

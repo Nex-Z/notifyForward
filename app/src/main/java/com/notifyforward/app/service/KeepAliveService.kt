@@ -21,6 +21,8 @@ class KeepAliveService : Service() {
     override fun onCreate() {
         super.onCreate()
         running = true
+        ListenerHealth.start(this, "keep_alive")
+        WatchdogService.schedule(this)
         startForegroundCompat()
     }
 

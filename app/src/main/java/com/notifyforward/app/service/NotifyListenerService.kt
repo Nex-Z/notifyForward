@@ -1,10 +1,7 @@
 package com.notifyforward.app.service
 
 import android.app.Notification
-import android.content.ComponentName
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -36,17 +33,17 @@ class NotifyListenerService : NotificationListenerService() {
         Thread(r, "nf-push").apply { isDaemon = true }
     }
 
-    @Volatile
-    private var retryAttempt = 0
-    private val retryHandler = Handler(Looper.getMainLooper())
-    private val retryDelays = longArrayOf(1000L, 3000L, 10000L, 30000L, 60000L)
-
+    override fun onCreate() {
+        super.onCreate()
+        ListenerDiagnostics.record(this, "listener_created")
+        ListenerHealth.start(this, "listener_created")
+        WatchdogService.schedule(this)
+    }
 
     override fun onListenerConnected() {
         super.onListenerConnected()
         connected = true
-        retryAttempt = 0
-        retryHandler.removeCallbacksAndMessages(null)
+        ListenerHealth.connected(this)
         Notices.ensureChannels(this)
         Notices.cancelListenerAlert(this)
         DndController.restoreIfExpired(this)
@@ -59,30 +56,19 @@ class NotifyListenerService : NotificationListenerService() {
     override fun onListenerDisconnected() {
         connected = false
         super.onListenerDisconnected()
-        // 系统偶尔会断开监听，按退避策略主动请求重连；多次失败后提醒用户
-        retryAttempt = 0
-        scheduleRebind()
-    }
-
-    private fun scheduleRebind() {
-        if (retryAttempt >= retryDelays.size) {
-            Notices.postListenerDisconnected(this)
-            return
-        }
-        val delay = retryDelays[retryAttempt++]
-        retryHandler.postDelayed({
-            if (connected) return@postDelayed
-            runCatching {
-                requestRebind(ComponentName(this, NotifyListenerService::class.java))
-            }
-            scheduleRebind()
-        }, delay)
+        ListenerHealth.disconnected(this, "system_callback")
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         val sbn = sbn ?: return
         if (sbn.packageName == packageName) return
-        worker.execute { handle(sbn) }
+        ListenerHealth.received()
+        worker.execute {
+            runCatching { handle(sbn) }.onFailure {
+                ListenerDiagnostics.record(this, "notification_processing_error", it.javaClass.simpleName)
+                Log.e(TAG, "Notification processing failed", it)
+            }
+        }
     }
 
     private fun handle(sbn: StatusBarNotification) {
@@ -250,7 +236,7 @@ class NotifyListenerService : NotificationListenerService() {
 
     override fun onDestroy() {
         connected = false
-        retryHandler.removeCallbacksAndMessages(null)
+        ListenerHealth.disconnected(this, "service_destroyed")
         worker.shutdownNow()
         webhookExecutor.shutdownNow()
         super.onDestroy()

@@ -18,7 +18,8 @@ class NotifyApp : Application() {
         DndController.restoreIfExpired(this)
 
         val settings = Settings.get(this)
-        if (settings.keepAlive) WatchdogService.schedule(this)
+        com.notifyforward.app.service.ListenerDiagnostics.record(this, "process_started", "name=${if (android.os.Build.VERSION.SDK_INT >= 28) getProcessName() else packageName} build=${android.os.Build.DISPLAY}")
+        if (settings.keepAlive || com.notifyforward.app.service.ListenerHealth.authorized(this)) WatchdogService.schedule(this)
         val db = DbHelper.get(this)
         Executors.newSingleThreadExecutor().execute {
             runCatching {

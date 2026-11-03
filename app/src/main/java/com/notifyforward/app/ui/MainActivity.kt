@@ -12,6 +12,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.notifyforward.app.service.ListenerStatusClient
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.notifyforward.app.R
 import com.notifyforward.app.databinding.ActivityMainBinding
 import com.notifyforward.app.ui.history.HistoryFragment
@@ -21,6 +29,7 @@ import com.notifyforward.app.ui.stats.StatsFragment
 
 class MainActivity : AppCompatActivity() {
 
+    private var connectionJob: Job? = null
     private lateinit var binding: ActivityMainBinding
     private lateinit var historyFragment: HistoryFragment
     private lateinit var rulesFragment: RulesFragment
@@ -117,7 +126,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updatePermissionCard() {
-        binding.permissionCard.visibility = if (isListenerEnabled()) View.GONE else View.VISIBLE
+        if (!isListenerEnabled()) {
+            binding.permissionCard.visibility = View.VISIBLE
+            binding.bannerTitle.setText(R.string.banner_title)
+            binding.bannerDesc.setText(R.string.banner_desc)
+        }
     }
 
     fun isListenerEnabled(): Boolean =
@@ -126,17 +139,25 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updatePermissionCard()
-        if (isListenerEnabled()) {
-            // App 被系统停止后重新打开时，主动恢复已授权的通知监听。
-            runCatching {
-                android.service.notification.NotificationListenerService.requestRebind(
-                    android.content.ComponentName(this, com.notifyforward.app.service.NotifyListenerService::class.java)
-                )
+        connectionJob?.cancel()
+        connectionJob = lifecycleScope.launch {
+            while (isActive) {
+                val status = withContext(Dispatchers.IO) { ListenerStatusClient.read(applicationContext) }
+                binding.permissionCard.visibility = if (status.connected) View.GONE else View.VISIBLE
+                binding.bannerTitle.text = if (isListenerEnabled()) "通知监听未连接" else getString(R.string.banner_title)
+                binding.bannerDesc.text = status.summary
+                binding.btnGrant.text = if (isListenerEnabled()) "去修复" else getString(R.string.banner_action)
+                delay(3_000)
             }
         }
         supportFragmentManager.fragments.firstOrNull { !it.isHidden }?.let {
             if (it is Refreshable) it.refresh()
         }
+    }
+
+    override fun onPause() {
+        connectionJob?.cancel()
+        super.onPause()
     }
 
     private companion object {
