@@ -3,6 +3,7 @@ package com.notifyforward.app.service
 import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -102,8 +103,16 @@ object ListenerHealth {
         if (now < kv.decodeLong("next")) return
         val attempt = kv.decodeInt("attempt")
         if (attempt < delays.size) {
+            val component = ComponentName(context, NotifyListenerService::class.java)
+            if (attempt == delays.lastIndex && Build.VERSION.SDK_INT >= 34) {
+                // Android can ignore rebind when it already considers the component enabled.
+                // Reset that state using the public API without changing the user's grant.
+                runCatching { NotificationListenerService.requestUnbind(component) }
+                    .onSuccess { ListenerDiagnostics.record(context, "binding_reset_requested") }
+                    .onFailure { ListenerDiagnostics.record(context, "binding_reset_error", it.javaClass.simpleName) }
+            }
             runCatching {
-                NotificationListenerService.requestRebind(ComponentName(context, NotifyListenerService::class.java))
+                NotificationListenerService.requestRebind(component)
             }.onSuccess { ListenerDiagnostics.record(context, "rebind_requested", "attempt=${attempt + 1}") }
                 .onFailure { ListenerDiagnostics.record(context, "rebind_error", "attempt=${attempt + 1} type=${it.javaClass.simpleName}") }
             kv.encode("attempt", attempt + 1)

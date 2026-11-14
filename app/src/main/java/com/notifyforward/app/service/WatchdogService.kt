@@ -18,6 +18,7 @@ class WatchdogService : JobService() {
 
     override fun onStartJob(params: JobParameters?): Boolean {
         val ctx = applicationContext
+        schedule(ctx)
         val settings = Settings.get(ctx)
         if (settings.keepAlive && !KeepAliveService.running) KeepAliveService.start(ctx)
         ListenerDiagnostics.record(ctx, "watchdog_check", "connected=${NotifyListenerService.connected}")
@@ -29,6 +30,18 @@ class WatchdogService : JobService() {
 
     companion object {
         private const val JOB_ID = 1001
+        private const val BOOT_JOB_ID = 1002
+
+        fun scheduleAfterBoot(context: Context) {
+            schedule(context)
+            val scheduler = context.getSystemService(JobScheduler::class.java)
+            val job = JobInfo.Builder(BOOT_JOB_ID, ComponentName(context, WatchdogService::class.java))
+                .setOverrideDeadline(0)
+                .build()
+            if (scheduler.schedule(job) != JobScheduler.RESULT_SUCCESS) {
+                ListenerDiagnostics.record(context, "boot_watchdog_schedule_failed")
+            }
+        }
 
         fun schedule(context: Context) {
             runCatching {

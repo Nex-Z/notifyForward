@@ -10,10 +10,8 @@ class BootReceiver : BroadcastReceiver() {
         val action = intent?.action ?: return
         if (action != Intent.ACTION_BOOT_COMPLETED && action != Intent.ACTION_MY_PACKAGE_REPLACED) return
         ListenerDiagnostics.record(context, "system_event", "action=$action build=${android.os.Build.DISPLAY}")
-        if (ListenerHealth.authorized(context) || Settings.get(context).keepAlive) WatchdogService.schedule(context)
-        if (Settings.get(context).keepAlive) {
-            KeepAliveService.start(context)
-            WatchdogService.schedule(context)
-        }
+        val keepAlive = Settings.get(context).keepAlive
+        if (ListenerHealth.authorized(context) || keepAlive) WatchdogService.scheduleAfterBoot(context)
+        if (keepAlive) KeepAliveService.start(context)
     }
 }
